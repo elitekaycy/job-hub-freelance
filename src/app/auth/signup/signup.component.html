@@ -1,0 +1,15 @@
+<div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-blue-700">Create Account</h2>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <input class="form-input" placeholder="Name" formControlName="name" />
+    <input class="form-input" placeholder="Email" type="email" formControlName="email" />
+    <input class="form-input" placeholder="Password" type="password" formControlName="password" />
+    <input class="form-input" placeholder="Confirm Password" type="password" formControlName="confirmPassword" />
+
+    <button type="submit" class="btn-primary w-full mt-4" [disabled]="form.invalid">Sign Up</button>
+    </form>
+    <p class="mt-4 text-center text-sm">
+    Already have an account?
+    <a routerLink="/signin" class="text-blue-600 hover:underline">Sign In</a>
+    </p>
+</div>
