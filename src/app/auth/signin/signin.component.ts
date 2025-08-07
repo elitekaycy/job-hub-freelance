@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink,ActivatedRoute} from '@angular/router';
+import { AuthService } from '../../config/services/authService/auth-service.service';
+
 
 @Component({
   selector: 'app-signin',
@@ -24,12 +26,17 @@ export class SigninComponent {
     password: ['', Validators.required]
   });
 
-  constructor(private readonly fb: FormBuilder, private readonly router: Router) {}
+  constructor(private readonly fb: FormBuilder, private readonly router: Router , private readonly route:ActivatedRoute, private readonly authService: AuthService) {}
 
   onSubmit() {
     if (this.form.valid) {
-      console.log('Signin data:', this.form.value);
-      this.router.navigate(['/']); // or a dashboard route
+      this.authService.login(this.form.value).subscribe({
+        next: () => {
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+          this.router.navigate([returnUrl]);
+        },
+        error: err => alert('Login failed: ' + err.message)
+      });
     }
   }
 }

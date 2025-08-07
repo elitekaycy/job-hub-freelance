@@ -1,11 +1,16 @@
-import { Component,inject  } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { BackdropComponent } from '../../layout/backdrop/backdrop.component';
+import { BackdropComponent } from '../../pages/layout/backdrop/backdrop.component';
 import { CommonModule } from '@angular/common';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
-import { AuthService } from '../../services/authService/auth-service.service';
-
+import { AuthService } from '../../config/services/authService/auth-service.service';
 
 @Component({
   selector: 'app-reset-password',
@@ -20,10 +25,13 @@ export class ResetPasswordComponent {
   private readonly router = inject(Router);
 
   token = this.route.snapshot.queryParamMap.get('token') || '';
-  form: FormGroup = this.fb.group({
-    password: ['', [Validators.required, Validators.minLength(8)]],
-    confirmPassword: ['', Validators.required]
-  }, { validators: this.match });
+  form: FormGroup = this.fb.group(
+    {
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', Validators.required],
+    },
+    { validators: this.match }
+  );
 
   match(group: AbstractControl<any, any>) {
     const pass = group.get('password')?.value;
@@ -36,8 +44,11 @@ export class ResetPasswordComponent {
 
     const { password } = this.form.value;
     this.authService.resetPassword(this.token, password).subscribe({
-      next: () => {alert('Password reset successfully'); this.router.navigate(['/sign-in']);},
-      error: err => alert('Reset failed: ' + err.message)
+      next: () => {
+        alert('Password reset successfully');
+        this.router.navigate(['/sign-in']);
+      },
+      error: (err) => alert('Reset failed: ' + err.message),
     });
   }
 }

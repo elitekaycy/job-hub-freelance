@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +26,18 @@ export class AuthService {
   resetPassword(token: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/reset-password`, { token, newPassword });
   }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('authToken');
+  }
+
+  login(credentials: any) {
+    return this.http.post(`${this.baseUrl}/signin`, credentials)
+    .pipe(tap((res: any) => {
+      localStorage.setItem('authToken', res.token);
+    }));
+  }
+
 
   logout(): void {
     // You may clear tokens/localStorage etc.
