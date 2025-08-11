@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-jobhub-dev-94f1f-authRole",
+      "UnauthRoleArn": "arn:aws:iam::767828749690:role/amplify-jobhub-dev-94f1f-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::767828749690:role/amplify-jobhub-dev-94f1f-authRole",
+      "Region": "eu-central-1",
+      "DeploymentBucketName": "amplify-jobhub-dev-94f1f-deployment",
+      "UnauthRoleName": "amplify-jobhub-dev-94f1f-unauthRole",
+      "StackName": "amplify-jobhub-dev-94f1f",
+      "StackId": "arn:aws:cloudformation:eu-central-1:767828749690:stack/amplify-jobhub-dev-94f1f/e00879f0-76b7-11f0-a272-0287e9a5a0b7",
+      "AmplifyAppId": "d2jkxi5ikux041"
+    },
+    "categories": {
+      "auth": {
+        "jobhub8ba8e6a6": {}
+      }
+    }
+  }
+}

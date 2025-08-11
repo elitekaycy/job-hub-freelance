@@ -24,14 +24,21 @@ export class ResetPasswordComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  token = this.route.snapshot.queryParamMap.get('token') || '';
+  // Get email from query params (passed from forgot-password component)
+  email = this.route.snapshot.queryParamMap.get('email') || '';
+
+
   form: FormGroup = this.fb.group(
     {
+      verificationCode: ['', [Validators.required, Validators.minLength(6)]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
     },
     { validators: this.match }
-  );
+  )
+
+  isLoading = false;
+  errorMessage = '';
 
   match(group: AbstractControl<any, any>) {
     const pass = group.get('password')?.value;
@@ -40,15 +47,41 @@ export class ResetPasswordComponent {
   }
 
   submit() {
-    if (this.form.invalid || !this.token) return;
+    if (this.form.invalid ||  !this.email) return;
 
-    const { password } = this.form.value;
-    this.authService.resetPassword(this.token, password).subscribe({
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const { verificationCode, password } = this.form.value;
+    // Use the new confirmResetPassword method
+    this.authService.confirmResetPassword(this.email,verificationCode, password).subscribe({
       next: () => {
         alert('Password reset successfully');
         this.router.navigate(['/sign-in']);
       },
-      error: (err) => alert('Reset failed: ' + err.message),
+      error: (err) => {
+        this.errorMessage = err.message || 'Reset failed';
+        this.isLoading = false;
+      }
     });
+  }
+
+  // Go back to forgot password
+  goBack() {
+    this.router.navigate(['/forgot-password']);
+  }
+
+  // Resend verification code
+  resendCode() {
+    if (this.email) {
+      this.authService.forgotPassword(this.email).subscribe({
+        next: () => {
+          alert('New verification code sent!');
+        },
+        error: (err) => {
+          this.errorMessage = 'Failed to resend code';
+        }
+      });
+    }
   }
 }

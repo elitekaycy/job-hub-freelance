@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../config/services/authService/auth-service.service';
 
 @Component({
   selector: 'app-signup',
@@ -19,19 +20,34 @@ import { Router, RouterLink } from '@angular/router';
 })
 
 export class SignupComponent {
+  authService = inject(AuthService);
   form = this.fb.group({
-    name: ['', Validators.required],
+    firstName: ['', Validators.required],
+    lastName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
+    username: ['', Validators.required],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    confirmPassword: ['', Validators.required]
+    confirmPassword: ['', Validators.required],
+    jobPreferences: [[]] // Add this new field
   });
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {}
 
   onSubmit() {
     if (this.form.valid) {
-      console.log('Signup data:', this.form.value);
-      this.router.navigate(['/signin']);
+      this.authService.signUp(this.form.value).subscribe({
+        next: (result) => {
+          // Your existing success logic
+          console.log('Signup data:', this.form.value, result);
+          
+          // Perform signup logic here
+          this.router.navigate(['/signin']);
+        },
+        error: (error) => {
+          // Your existing error handling
+          console.error('Sign up failed', error);
+        }
+      });
     }
   }
 }

@@ -31,8 +31,9 @@ export class SigninComponent {
 
   onSubmit() {
     if (this.form.valid) {
-      this.authService.login(this.form.value).subscribe({
-        next: () => {
+      this.authService.signIn(this.form.value).subscribe({
+        next: (result) => {
+          console.log('Sign in result:', result);
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
           this.router.navigate([returnUrl]);
         },
