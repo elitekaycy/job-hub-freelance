@@ -33,11 +33,9 @@ export class AuthService {
     try {
      await getCurrentUser();
       this.isAuthenticatedSubject.next(true);
-      localStorage.setItem('authToken', 'amplify-authenticated');
     } catch (error) {
       this.isAuthenticatedSubject.next(false);
       console.error('Error checking auth state:', error);
-      localStorage.removeItem('authToken');
     }
   }
 
@@ -79,8 +77,6 @@ export class AuthService {
     })).pipe(
       tap(() => {
         this.isAuthenticatedSubject.next(true);
-        // Still set localStorage for backward compatibility
-        localStorage.setItem('authToken', 'amplify-authenticated');
       }),
       catchError(error => {
         console.error('Sign-in error:', error);
@@ -110,12 +106,10 @@ export class AuthService {
   logout(): Observable<any> {
     return from (amplifySignOut()).pipe(
     tap(() => {
-        localStorage.removeItem('authToken');
         this.isAuthenticatedSubject.next(false);
       }),
       catchError(error => {
         console.error('Logout error:', error);
-        localStorage.removeItem('authToken');
         this.isAuthenticatedSubject.next(false);
         return of(null);
       })

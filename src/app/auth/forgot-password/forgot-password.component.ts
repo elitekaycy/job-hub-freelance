@@ -16,9 +16,6 @@ import { AuthService } from '../../config/services/authService/auth-service.serv
     .btn-primary {
       @apply bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700;
     }
-    .btn-secondary {
-      @apply bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600;
-    }
     .error-message {
       @apply text-red-600 text-sm mb-3;
     }
@@ -44,18 +41,11 @@ export class ForgotPasswordComponent {
       this.errorMessage = '';
       this.successMessage = '';
       
-      const email = this.form.value.email!;
+      const email = this.form.value.email!.trim();
       this.authService.forgotPassword(email).subscribe({
         next: () => {
-          this.successMessage = `Verification code sent to ${email}`;
+          this.successMessage = `Verification code sent to ${email}. Please check your email.`;;
           this.isLoading = false;
-
-          // Navigate to reset password with email as query param
-          setTimeout(() => {
-            this.router.navigate(['/reset-password'], { 
-              queryParams: { email: email }
-            });
-          }, 2000);
         },
         error: (error) => {
           this.errorMessage = error.message || 'Failed to send reset code';
@@ -63,5 +53,10 @@ export class ForgotPasswordComponent {
         }
       });
     }
+  }
+
+  navigateToReset() {
+    const email = this.form.value.email!.trim();
+    this.router.navigate(['/reset-password'], { queryParams: { email } });
   }
 }

@@ -23,6 +23,10 @@
       <button type="submit" class="btn-primary w-full mt-2" [disabled]="form.invalid">
         Sign In
       </button>
+
+      @if(errorMessage){
+        <p  class="text-red-500 text-sm mt-2">{{ errorMessage }}</p>
+      }
     </form>
 
     <div class="mt-4 text-center text-sm">

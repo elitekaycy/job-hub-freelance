@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors,FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../config/services/authService/auth-service.service';
 import { MultiSelectComponent } from '../../components/multiselect/multiselect.component';
@@ -9,7 +9,7 @@ import { jobPreferenceOptions } from '../../config/data/jobs.data';
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink,MultiSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink,MultiSelectComponent,FormsModule],
   templateUrl: './signup.component.html',
   styles: [`
   .form-input {
@@ -24,6 +24,10 @@ import { jobPreferenceOptions } from '../../config/data/jobs.data';
 export class SignupComponent {
   authService = inject(AuthService);
   jobPreferenceOptions = jobPreferenceOptions;
+  showConfirmation = signal(false);
+  confirmationCode = signal('');
+  errorMessage = '';
+
   form = this.fb.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
@@ -32,31 +36,49 @@ export class SignupComponent {
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', Validators.required],
     jobPreferences: [['']] // Add this new field
-  });
+  },{ validators: this.passwordMatchValidator });
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {}
+
+
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+    return password === confirmPassword ? null : { mismatch: true };
+  }
 
     // Handle selection changes (optional)
   onJobPreferencesChange(selectedIds: string[]): void {
     console.log('Selected job preferences:', selectedIds);
-    // You can perform additional logic here
+    this.form.patchValue({ jobPreferences: selectedIds });
   }
 
   onSubmit() {
     if (this.form.valid) {
-      this.authService.signUp(this.form.value).subscribe({
-        next: (result) => {
-          // Your existing success logic
-          console.log('Signup data:', this.form.value, result);
-          
-          // Perform signup logic here
+      const { firstName, lastName, email, password, jobPreferences } = this.form.value;
+      this.authService.signUp({ email:email!, password:password!, firstName:firstName!, lastName:lastName!, jobPreferences:jobPreferences??[] }).subscribe({
+          next: () => {
+            this.showConfirmation.set(true) ; // Show confirmation form
+          },
+          error: (err) => {
+            this.errorMessage = err.message || 'Sign-up failed';
+          }
+      });
+    }
+  }
+
+  onConfirm(code: string) {
+    const email = this.form.get('email')?.value;
+    if (email) {
+      this.authService.confirmSignUp(email, code).subscribe({
+        next: () => {
           this.router.navigate(['/signin']);
         },
-        error: (error) => {
-          // Your existing error handling
-          console.error('Sign up failed', error);
+        error: (err) => {
+          this.errorMessage = err.message || 'Confirmation failed';
         }
       });
     }
   }
+
 }

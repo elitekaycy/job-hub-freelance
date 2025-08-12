@@ -26,18 +26,25 @@ export class SigninComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required]
   });
+  errorMessage = '';
 
-  constructor(private readonly fb: FormBuilder, private readonly router: Router , private readonly route:ActivatedRoute, private readonly authService: AuthService) {}
+  constructor(
+    private readonly fb: FormBuilder, 
+    private readonly router: Router , 
+    private readonly route:ActivatedRoute, 
+    private readonly authService: AuthService
+  ) {}
 
   onSubmit() {
     if (this.form.valid) {
-      this.authService.signIn(this.form.value).subscribe({
+      const { email, password } = this.form.value;
+      this.authService.signIn({email: email!, password: password!}).subscribe({
         next: (result) => {
           console.log('Sign in result:', result);
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
           this.router.navigate([returnUrl]);
         },
-        error: err => alert('Login failed: ' + err.message)
+        error: err => this.errorMessage = err.message || 'Login failed'
       });
     }
   }
