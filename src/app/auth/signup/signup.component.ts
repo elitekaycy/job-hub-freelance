@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../config/services/authService/auth-service.service';
+import { MultiSelectComponent } from '../../components/multiselect/multiselect.component';
+import { jobPreferenceOptions } from '../../config/data/jobs.data';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink,MultiSelectComponent],
   templateUrl: './signup.component.html',
   styles: [`
   .form-input {
@@ -21,6 +23,7 @@ import { AuthService } from '../../config/services/authService/auth-service.serv
 
 export class SignupComponent {
   authService = inject(AuthService);
+  jobPreferenceOptions = jobPreferenceOptions;
   form = this.fb.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
@@ -28,10 +31,16 @@ export class SignupComponent {
     username: ['', Validators.required],
     password: ['', [Validators.required, Validators.minLength(6)]],
     confirmPassword: ['', Validators.required],
-    jobPreferences: [[]] // Add this new field
+    jobPreferences: [['']] // Add this new field
   });
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {}
+
+    // Handle selection changes (optional)
+  onJobPreferencesChange(selectedIds: string[]): void {
+    console.log('Selected job preferences:', selectedIds);
+    // You can perform additional logic here
+  }
 
   onSubmit() {
     if (this.form.valid) {

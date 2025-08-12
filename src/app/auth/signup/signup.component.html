@@ -8,7 +8,18 @@
     <input class="form-input" placeholder="Password" type="password" formControlName="password" />
     <input class="form-input" placeholder="Confirm Password" type="password" formControlName="confirmPassword" />
 
-    // Add more form fields as needed MultiSelect Control
+    <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-2" for="jobPreferences">
+            Job Preferences (Optional)
+        </label>
+        <app-multi-select
+            [options]="jobPreferenceOptions"
+            formControlName="jobPreferences"
+            placeholder="Select your job interests..."
+            [searchable]="true"
+            (selectionChange)="onJobPreferencesChange($event)"
+        />
+    </div>
     <button type="submit" class="btn-primary w-full mt-4" [disabled]="form.invalid">Sign Up</button>
     </form>
     <p class="mt-4 text-center text-sm">
