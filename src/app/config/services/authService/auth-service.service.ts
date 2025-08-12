@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, from, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, from, BehaviorSubject, of } from 'rxjs';
+import { tap, catchError, map } from 'rxjs/operators';
 
 import { 
   signUp as amplifySignUp, 
@@ -18,13 +17,13 @@ import {
 })
 export class AuthService {
 
-  private readonly baseUrl = 'https://your-api-url.com/api/auth';
-
   // Add these for Amplify compatibility
   private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  constructor(private readonly http: HttpClient) {}
+  constructor() {
+    this.init();
+  }
 
   public async init(): Promise<void> {
     await this.checkAuthState();
@@ -39,89 +38,95 @@ export class AuthService {
       this.isAuthenticatedSubject.next(false);
       console.error('Error checking auth state:', error);
       localStorage.removeItem('authToken');
-      throw error; // propagate the error up the call stack
     }
   }
 
-  signUp(data: any): Observable<any> {
+  signUp(data: {email: string; password: string; firstName?: string; lastName?: string; jobPreferences?: string[] }): Observable<any> {
     return from(amplifySignUp({
-      username: data.username,
+      username: data.email,
       password: data.password,
       options: {
         userAttributes: {
           email: data.email,
-          given_name: data.firstName,
-          family_name: data.lastName,
-          'custom:job_preferences': JSON.stringify(data.jobPreferences || [])
+          ...(data.firstName && { given_name: data.firstName }),
+            ...(data.lastName && { family_name: data.lastName }),
+            ...(data.jobPreferences && { 'custom:job_preferences': JSON.stringify(data.jobPreferences) })
         }
       }
-    }));
+    })
+    ).pipe(
+      catchError(error => {
+        console.error('Sign-up error:', error);
+        throw error;
+      })
+    );
+  }  
+  
+  // Add confirmation method for email verification
+  confirmSignUp(email: string, code: string): Observable<any> {
+    return from(amplifyConfirmSignUp({ username: email, confirmationCode: code })).pipe(
+      catchError(error => {
+        console.error('Confirmation error:', error);
+        throw error;
+      })
+    );
   }
 
-  signIn(data: any): Observable<any> {
+  signIn(data: { email: string; password: string }): Observable<any> {
     return from(amplifySignIn({ 
-      username: data.username, 
+      username: data.email, 
       password: data.password 
     })).pipe(
-      tap((result) => {
+      tap(() => {
         this.isAuthenticatedSubject.next(true);
         // Still set localStorage for backward compatibility
         localStorage.setItem('authToken', 'amplify-authenticated');
+      }),
+      catchError(error => {
+        console.error('Sign-in error:', error);
+        throw error;
       })
     );
   }
 
   forgotPassword(email: string): Observable<any> {
-    return from(amplifyResetPassword({ username: email }));
+    return from(amplifyResetPassword({ username: email })).pipe(
+      catchError(error => {
+        console.error('Forgot password error:', error);
+        throw error;
+      })
+    );
   }
 
-  // resetPassword(token: string, newPassword: string): Observable<any> {
-  //   // Note: Amplify needs username + code, not token
-  //   // We might need to adjust this based on your UI flow
-  //   return from(amplifyConfirmResetPassword({
-  //     username: token, // Assuming token is actually username
-  //     confirmationCode: 'CODE_FROM_EMAIL', // This needs to come from your UI
-  //     newPassword
-  //   }));
-  // }
-
-  confirmResetPassword(username: string, code: string, newPassword: string): Observable<any> {
-    return from(amplifyConfirmResetPassword({
-      username,
-      confirmationCode: code,
-      newPassword
-    }));
+  confirmResetPassword(email: string, code: string, newPassword: string): Observable<any> {
+    return from(amplifyConfirmResetPassword({ username: email, confirmationCode: code, newPassword })).pipe(
+      catchError(error => {
+        console.error('Confirm reset password error:', error);
+        throw error;
+      })
+    );
   }
 
-  isLoggedIn(): boolean {
-    return !!localStorage.getItem('authToken') || this.isAuthenticatedSubject.value;
-  }
-
-  login(credentials: any) {
-      return this.signIn(credentials);
-  }
-
-
-  logout(): void {
-    from(amplifySignOut()).subscribe({
-      next: () => {
+  logout(): Observable<any> {
+    return from (amplifySignOut()).pipe(
+    tap(() => {
         localStorage.removeItem('authToken');
         this.isAuthenticatedSubject.next(false);
-      },
-      error: (error) => {
+      }),
+      catchError(error => {
         console.error('Logout error:', error);
-        // Still clear local storage even if Amplify logout fails
         localStorage.removeItem('authToken');
         this.isAuthenticatedSubject.next(false);
-      }
-    });
+        return of(null);
+      })
+    );  
   }
 
-  // Add confirmation method for email verification
-  confirmSignUp(username: string, code: string): Observable<any> {
-    return from(amplifyConfirmSignUp({
-      username,
-      confirmationCode: code
-    }));
+
+  isLoggedIn(): Observable<boolean> {
+    return from(getCurrentUser()).pipe(
+      map(() => true),
+      catchError(() => of(false))
+    );
   }
 }
