@@ -27,6 +27,7 @@ export class SignupComponent {
   showConfirmation = signal(false);
   confirmationCode = signal('');
   errorMessage = '';
+  loading = false;
 
   form = this.fb.group({
     firstName: ['', Validators.required],
@@ -36,7 +37,7 @@ export class SignupComponent {
     phoneNumber: ['', Validators.required],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', Validators.required],
-    jobPreferences: [''] // Add this new field
+    jobPreferences: [[] as string[]] // Add this new field
   },{ validators: this.passwordMatchValidator });
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {}
@@ -48,21 +49,20 @@ export class SignupComponent {
     return password === confirmPassword ? null : { mismatch: true };
   }
 
-    // Handle selection changes (optional)
-  onJobPreferencesChange(selectedIds: string[]): void {
-    console.log('Selected job preferences:', selectedIds);
-    this.form.patchValue({ jobPreferences: selectedIds.join(',') });
-  }
-
   onSubmit() {
     if (this.form.valid) {
+      this.loading = true;
       const { firstName, middleName, lastName, email,phoneNumber, password, jobPreferences } = this.form.value;
-      this.authService.signUp({ email:email!, password:password!, firstName:firstName!, middleName:middleName! ,lastName:lastName!,phoneNumber:phoneNumber!, jobPreferences:jobPreferences! }).subscribe({
+      const job_category = jobPreferences ? jobPreferences.join(',') : '';
+      this.authService.signUp({ email:email!, password:password!, firstName:firstName!, middleName:middleName! ,lastName:lastName!,phoneNumber:phoneNumber!, jobPreferences:job_category }).subscribe({
           next: () => {
             this.showConfirmation.set(true) ; // Show confirmation form
+            this.errorMessage = '';
+            this.loading = false;
           },
           error: (err) => {
             this.errorMessage = err.message || 'Sign-up failed';
+            this.loading = false;
           }
       });
     }
@@ -71,11 +71,15 @@ export class SignupComponent {
   onConfirm() {
     const email = this.form.get('email')?.value;
     if (email && this.confirmationCode()) {
+      this.loading = true;
       this.authService.confirmSignUp(email, this.confirmationCode()).subscribe({
         next: () => {
+          this.loading = false;
+          this.errorMessage = '';
           this.router.navigate(['/signin']);
         },
         error: (err) => {
+          this.loading = false;
           this.errorMessage = err.message || 'Confirmation failed';
         }
       });

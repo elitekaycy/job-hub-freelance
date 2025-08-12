@@ -9,7 +9,6 @@ import { RouterOutlet } from '@angular/router';
   <div class="min-h-screen flex items-center justify-center bg-blue-100">
       <router-outlet></router-outlet>
     </div>`,
-  styleUrl: './app.component.css'
 })
 export class AppComponent {
   title = 'job-hub';

@@ -94,7 +94,11 @@ export class MultiSelectComponent implements ControlValueAccessor {
   }
 
   writeValue(value: string[]): void {
-    this.selectedValues.set(value?.filter(id => id) || []);
+    if (Array.isArray(value)) {
+      this.selectedValues.set(value.filter(id => id));
+    } else {
+      this.selectedValues.set([]);
+    }
   }
 
   registerOnChange(fn: (value: string[]) => void): void {

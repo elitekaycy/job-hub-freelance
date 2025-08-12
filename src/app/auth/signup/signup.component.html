@@ -39,6 +39,9 @@
             @if(errorMessage){
                <p  class="text-red-500 text-sm mt-2">{{ errorMessage }}</p> 
             }
+            @if(loading){
+                 <p  class="text-blue-500 text-sm mt-2">{{ "loading....." }}</p> 
+            }
         </form>
     }
     @if(showConfirmation()){
@@ -48,6 +51,10 @@
 
             @if(errorMessage){
                 <p  class="text-red-500 text-sm mt-2">{{ errorMessage }}</p>
+            }
+
+            @if(loading){
+                <p  class="text-blue-500 text-sm mt-2">{{ "loading....." }}</p>
             }
         </form>        
     }

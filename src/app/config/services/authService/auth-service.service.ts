@@ -16,8 +16,6 @@ import {
   providedIn: 'root'
 })
 export class AuthService {
-
-  // Add these for Amplify compatibility
   private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
@@ -49,9 +47,8 @@ export class AuthService {
           ...(data.firstName && { given_name: data.firstName }),
           ...(data.phoneNumber && { phone_number: data.phoneNumber }),
           ...(data.lastName && { family_name: data.lastName }),
-          ...(data.middleName && { 'custom:middle_name': data.middleName }),            
+          ...(data.middleName && { middle_name: data.middleName }),            
           ...(data.jobPreferences && { 'custom:job_category': data.jobPreferences })
-            // ...(data.jobPreferences && { 'custom:job_preferences': data.jobPreferences })
         }
       }
     })
