@@ -39,7 +39,7 @@ export class AuthService {
     }
   }
 
-  signUp(data: {email: string; password: string; firstName?: string; lastName?: string; jobPreferences?: string[] }): Observable<any> {
+  signUp(data: {email: string; password: string; firstName?: string; middleName?: string; lastName?: string;phoneNumber?: string; jobPreferences?: string }): Observable<any> {
     return from(amplifySignUp({
       username: data.email,
       password: data.password,
@@ -47,8 +47,11 @@ export class AuthService {
         userAttributes: {
           email: data.email,
           ...(data.firstName && { given_name: data.firstName }),
-            ...(data.lastName && { family_name: data.lastName }),
-            ...(data.jobPreferences && { 'custom:job_preferences': JSON.stringify(data.jobPreferences) })
+          ...(data.phoneNumber && { phone_number: data.phoneNumber }),
+          ...(data.lastName && { family_name: data.lastName }),
+          ...(data.middleName && { 'custom:middle_name': data.middleName }),            
+          ...(data.jobPreferences && { 'custom:job_category': data.jobPreferences })
+            // ...(data.jobPreferences && { 'custom:job_preferences': data.jobPreferences })
         }
       }
     })

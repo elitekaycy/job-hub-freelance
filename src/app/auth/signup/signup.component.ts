@@ -30,12 +30,13 @@ export class SignupComponent {
 
   form = this.fb.group({
     firstName: ['', Validators.required],
+    middleName: [''],
     lastName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    username: ['', Validators.required],
+    phoneNumber: ['', Validators.required],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', Validators.required],
-    jobPreferences: [['']] // Add this new field
+    jobPreferences: [''] // Add this new field
   },{ validators: this.passwordMatchValidator });
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {}
@@ -50,13 +51,13 @@ export class SignupComponent {
     // Handle selection changes (optional)
   onJobPreferencesChange(selectedIds: string[]): void {
     console.log('Selected job preferences:', selectedIds);
-    this.form.patchValue({ jobPreferences: selectedIds });
+    this.form.patchValue({ jobPreferences: selectedIds.join(',') });
   }
 
   onSubmit() {
     if (this.form.valid) {
-      const { firstName, lastName, email, password, jobPreferences } = this.form.value;
-      this.authService.signUp({ email:email!, password:password!, firstName:firstName!, lastName:lastName!, jobPreferences:jobPreferences??[] }).subscribe({
+      const { firstName, middleName, lastName, email,phoneNumber, password, jobPreferences } = this.form.value;
+      this.authService.signUp({ email:email!, password:password!, firstName:firstName!, middleName:middleName! ,lastName:lastName!,phoneNumber:phoneNumber!, jobPreferences:jobPreferences! }).subscribe({
           next: () => {
             this.showConfirmation.set(true) ; // Show confirmation form
           },
@@ -67,10 +68,10 @@ export class SignupComponent {
     }
   }
 
-  onConfirm(code: string) {
+  onConfirm() {
     const email = this.form.get('email')?.value;
-    if (email) {
-      this.authService.confirmSignUp(email, code).subscribe({
+    if (email && this.confirmationCode()) {
+      this.authService.confirmSignUp(email, this.confirmationCode()).subscribe({
         next: () => {
           this.router.navigate(['/signin']);
         },

@@ -3,9 +3,22 @@
     @if(!showConfirmation()){
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <input class="form-input" placeholder="First Name" formControlName="firstName" />
+            <input class="form-input" placeholder="Middle Name" formControlName="middleName" />
             <input class="form-input" placeholder="Last Name" formControlName="lastName" />
+
             <input class="form-input" placeholder="Email" type="email" formControlName="email" />
+            <input class="form-input" placeholder="Phone Number" type="tel" formControlName="phoneNumber" />
+
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+                <div class="text-red-500 text-sm mb-3">Please enter a valid email</div>
+            }
+
             <input class="form-input" placeholder="Password" type="password" formControlName="password" />
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+                 <div class="text-red-500 text-sm mb-3">Password must be at least 8 characters</div>
+            }
+            
+            
             <input class="form-input" placeholder="Confirm Password" type="password" formControlName="confirmPassword" />
             @if(form.errors?.['mismatch']){
                  <div  class="text-red-500 text-sm mb-3">Passwords do not match</div>
@@ -20,7 +33,6 @@
                     formControlName="jobPreferences"
                     placeholder="Select your job interests..."
                     [searchable]="true"
-                    (selectionChange)="onJobPreferencesChange($event)"
                 />
             </div>
             <button type="submit" class="btn-primary w-full mt-4" [disabled]="form.invalid">Sign Up</button>
@@ -30,9 +42,9 @@
         </form>
     }
     @if(showConfirmation()){
-        <form  (ngSubmit)="onConfirm(confirmationCode())">
+        <form  (ngSubmit)="onConfirm()">
             <input class="form-input" placeholder="Confirmation Code" [(ngModel)]="confirmationCode" name="confirmationCode" required />
-            <button type="submit" class="btn-primary w-full mt-4">Confirm</button>
+            <button type="submit" class="btn-primary w-full mt-4" [disabled]="!confirmationCode()">Confirm</button>
 
             @if(errorMessage){
                 <p  class="text-red-500 text-sm mt-2">{{ errorMessage }}</p>

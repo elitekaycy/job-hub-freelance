@@ -3,7 +3,6 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
 import { CommonModule } from '@angular/common';
 import { SelectOption } from '../../config/interfaces/general.interface';
 
-
 @Component({
   selector: 'app-multi-select',
   standalone: true,
@@ -15,72 +14,65 @@ import { SelectOption } from '../../config/interfaces/general.interface';
       useExisting: forwardRef(() => MultiSelectComponent),
       multi: true
     }
-  ],
+  ]
 })
 export class MultiSelectComponent implements ControlValueAccessor {
-   // Input signals
   options = input<SelectOption[]>([]);
   placeholder = input<string>('Select options...');
   searchable = input<boolean>(true);
   disabled = input<boolean>(false);
 
-  // Output signals
   selectionChange = output<string[]>();
 
-  // Internal signals
   selectedValues = signal<string[]>([]);
   isOpen = signal<boolean>(false);
   searchTerm = signal<string>('');
 
-  // Computed signals
   filteredOptions = computed(() => {
-    const search = this.searchTerm().toLowerCase();
-    if (!search) return this.options();
-    
-    return this.options().filter(option => 
-      option.name.toLowerCase().includes(search) ||
-      option.category?.toLowerCase().includes(search)
+    const search = this.searchTerm().toLowerCase().trim();
+    if (!search) return this.options() || [];
+    return (this.options() || []).filter(option =>
+      (option.name?.toLowerCase()?.includes(search) ||
+       option.category?.toLowerCase()?.includes(search)) ?? false
     );
   });
 
   selectedText = computed(() => {
     const selected = this.selectedValues();
-    if (selected.length === 0) return this.placeholder();
+    if (!selected?.length) return this.placeholder();
     if (selected.length === 1) {
       const option = this.options().find(o => o.id === selected[0]);
-      return option?.name || '';
+      return option?.name || this.placeholder();
     }
     return `${selected.length} options selected`;
   });
 
-  // ControlValueAccessor implementation
   private onChange = (value: string[]) => {};
   private onTouched = () => {};
 
-  toggleDropdown(): void {
+  toggleDropdown(event: Event): void {
     if (this.disabled()) return;
-    
     this.isOpen.update(open => !open);
     if (this.isOpen()) {
       this.onTouched();
     }
+    event.stopPropagation();
   }
 
   closeDropdown(): void {
     this.isOpen.set(false);
+    this.searchTerm.set(''); // Reset search term
   }
 
-  toggleOption(option: SelectOption): void {
+  toggleOption(option: SelectOption, event?: Event): void {
+    if (this.disabled()) return;
+    event?.stopPropagation();
     const currentValues = this.selectedValues();
     const index = currentValues.indexOf(option.id);
-    
-    let newValues: string[];
-    if (index > -1) {
-      newValues = currentValues.filter(id => id !== option.id);
-    } else {
-      newValues = [...currentValues, option.id];
-    }
-    
+    const newValues = index > -1
+      ? currentValues.filter(id => id !== option.id)
+      : [...currentValues, option.id];
+
     this.selectedValues.set(newValues);
     this.onChange(newValues);
     this.selectionChange.emit(newValues);
@@ -92,7 +84,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
 
   updateSearchTerm(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.searchTerm.set(target.value);
+    this.searchTerm.set(target?.value?.trim() || '');
   }
 
   clearAll(): void {
@@ -101,9 +93,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
     this.selectionChange.emit([]);
   }
 
-  // ControlValueAccessor methods
   writeValue(value: string[]): void {
-    this.selectedValues.set(value || []);
+    this.selectedValues.set(value?.filter(id => id) || []);
   }
 
   registerOnChange(fn: (value: string[]) => void): void {
@@ -115,8 +106,6 @@ export class MultiSelectComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    // Handle disabled state if needed
+    // Handle disabled state
   }
-
-
 }
