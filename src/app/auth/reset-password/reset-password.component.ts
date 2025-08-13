@@ -80,7 +80,7 @@ export class ResetPasswordComponent {
       next: () => {
         this.successMessage = 'Password reset successfully. Redirecting to sign-in...';
         this.isLoading = false;
-        setTimeout(() => this.router.navigate(['/signin']), 2000);
+        setTimeout(() => this.router.navigate(['/auth/signin']), 2000);
       },
       error: (err) => {
         this.errorMessage = err.message || 'Reset failed. Please check your code or try again.';
@@ -91,7 +91,7 @@ export class ResetPasswordComponent {
 
   // Go back to forgot password
   goBack() {
-    this.router.navigate(['/forgot-password']);
+    this.router.navigate(['/auth/forgot-password']);
   }
 
   // Resend verification code
