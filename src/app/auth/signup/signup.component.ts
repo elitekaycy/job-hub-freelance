@@ -53,8 +53,7 @@ export class SignupComponent {
     if (this.form.valid) {
       this.loading = true;
       const { firstName, middleName, lastName, email,phoneNumber, password, jobPreferences } = this.form.value;
-      const job_category = jobPreferences ? jobPreferences.join(',') : '';
-      this.authService.signUp({ email:email!, password:password!, firstName:firstName!, middleName:middleName! ,lastName:lastName!,phoneNumber:phoneNumber!, jobPreferences:job_category }).subscribe({
+      this.authService.signUp({ email:email!, password:password!, firstName:firstName!, middleName:middleName! ,lastName:lastName!,phoneNumber:phoneNumber!, jobPreferences:jobPreferences! }).subscribe({
           next: () => {
             this.showConfirmation.set(true) ; // Show confirmation form
             this.errorMessage = '';

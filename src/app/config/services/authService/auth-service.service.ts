@@ -9,7 +9,8 @@ import {
   getCurrentUser,
   confirmSignUp as amplifyConfirmSignUp,
   resetPassword as amplifyResetPassword,
-  confirmResetPassword as amplifyConfirmResetPassword
+  confirmResetPassword as amplifyConfirmResetPassword,
+  deleteUser as amplifyDeleteUser
 } from 'aws-amplify/auth';
 
 @Injectable({
@@ -37,7 +38,8 @@ export class AuthService {
     }
   }
 
-  signUp(data: {email: string; password: string; firstName?: string; middleName?: string; lastName?: string;phoneNumber?: string; jobPreferences?: string }): Observable<any> {
+  signUp(data: {email: string; password: string; firstName?: string; middleName?: string; lastName?: string;phoneNumber?: string; jobPreferences?: string[] }): Observable<any> {
+    
     return from(amplifySignUp({
       username: data.email,
       password: data.password,
@@ -48,7 +50,9 @@ export class AuthService {
           ...(data.phoneNumber && { phone_number: data.phoneNumber }),
           ...(data.lastName && { family_name: data.lastName }),
           ...(data.middleName && { middle_name: data.middleName }),            
-          ...(data.jobPreferences && { 'custom:job_category': data.jobPreferences })
+        },
+        clientMetadata: {
+          job_category:  JSON.stringify(data.jobPreferences || []) 
         }
       }
     })
@@ -121,6 +125,19 @@ export class AuthService {
     return from(getCurrentUser()).pipe(
       map(() => true),
       catchError(() => of(false))
+    );
+  }
+
+  deleteUser(): Observable<any> {
+    return from(amplifyDeleteUser()).pipe(
+      tap(() => {
+        this.isAuthenticatedSubject.next(false);
+        console.log('User deleted successfully');
+      }),
+      catchError(error => {
+        console.error('Delete user error:', error);
+        throw error;
+      })
     );
   }
 }
