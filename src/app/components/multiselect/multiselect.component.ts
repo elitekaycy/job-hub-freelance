@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, forwardRef } from '@angular/core';
+import { Component, input, output, signal, computed, forwardRef, ElementRef, HostListener } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SelectOption } from '../../config/interfaces/general.interface';
@@ -32,14 +32,15 @@ export class MultiSelectComponent implements ControlValueAccessor {
     const search = this.searchTerm().toLowerCase().trim();
     if (!search) return this.options() || [];
     return (this.options() || []).filter(option =>
-      (option.name?.toLowerCase()?.includes(search) ||
-       option.category?.toLowerCase()?.includes(search)) ?? false
+      (option.name?.toLowerCase()?.includes(search) || 
+       option.category?.toLowerCase()?.includes(search) || false)
     );
+    // Simplified logic, ensured || false for safety
   });
 
   selectedText = computed(() => {
     const selected = this.selectedValues();
-    if (!selected?.length) return this.placeholder();
+    if (selected.length === 0) return this.placeholder();
     if (selected.length === 1) {
       const option = this.options().find(o => o.id === selected[0]);
       return option?.name || this.placeholder();
@@ -49,6 +50,15 @@ export class MultiSelectComponent implements ControlValueAccessor {
 
   private onChange = (value: string[]) => {};
   private onTouched = () => {};
+
+  constructor(private elementRef: ElementRef) {}
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (this.isOpen() && !this.elementRef.nativeElement.contains(event.target)) {
+      this.closeDropdown();
+    }
+  }
 
   toggleDropdown(event: Event): void {
     if (this.disabled()) return;
@@ -61,7 +71,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
 
   closeDropdown(): void {
     this.isOpen.set(false);
-    this.searchTerm.set(''); // Reset search term
+    this.searchTerm.set('');
   }
 
   toggleOption(option: SelectOption, event?: Event): void {
@@ -82,23 +92,21 @@ export class MultiSelectComponent implements ControlValueAccessor {
     return this.selectedValues().includes(optionId);
   }
 
-  updateSearchTerm(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchTerm.set(target?.value?.trim() || '');
+  onSearchChange(): void {
+    // Triggered by ngModelChange to ensure immediate updates
+    // No need to manually set searchTerm since ngModel handles it
+    this.filteredOptions(); // Force recomputation of filtered options
   }
 
   clearAll(): void {
     this.selectedValues.set([]);
     this.onChange([]);
     this.selectionChange.emit([]);
+    this.closeDropdown();
   }
 
   writeValue(value: string[]): void {
-    if (Array.isArray(value)) {
-      this.selectedValues.set(value.filter(id => id));
-    } else {
-      this.selectedValues.set([]);
-    }
+    this.selectedValues.set(Array.isArray(value) ? value.filter(id => id) : []);
   }
 
   registerOnChange(fn: (value: string[]) => void): void {
@@ -110,6 +118,6 @@ export class MultiSelectComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    // Handle disabled state
+    // No-op; input() handles it
   }
 }

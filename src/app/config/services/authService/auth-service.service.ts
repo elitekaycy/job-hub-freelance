@@ -40,7 +40,7 @@ export class AuthService {
 
   signUp(data: {email: string; password: string; firstName?: string; middleName?: string; lastName?: string;phoneNumber?: string; jobPreferences?: string[] }): Observable<any> {
     
-    return from(amplifySignUp({
+    const signUpPayload={
       username: data.email,
       password: data.password,
       options: {
@@ -49,14 +49,14 @@ export class AuthService {
           ...(data.firstName && { given_name: data.firstName }),
           ...(data.phoneNumber && { phone_number: data.phoneNumber }),
           ...(data.lastName && { family_name: data.lastName }),
-          ...(data.middleName && { middle_name: data.middleName }),            
-        },
-        clientMetadata: {
-          job_category:  JSON.stringify(data.jobPreferences || []) 
+          ...(data.middleName && { middle_name: data.middleName }),   
+          ...(data.jobPreferences && { 'custom:job_category_ids': JSON.stringify(data.jobPreferences || []) })         
         }
       }
-    })
-    ).pipe(
+    }
+  
+    return from(amplifySignUp(signUpPayload)).pipe(
+      tap((response) => console.log('Sign-up response:', response)),
       catchError(error => {
         console.error('Sign-up error:', error);
         throw error;
