@@ -1,4 +1,11 @@
-<!-- <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md"> -->
+
+<img
+  src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&h=1080"
+  alt="Office team working"
+  class="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none z-0"
+/>
+
+<div class="relative z-10 bg-white p-8 rounded-2xl shadow-xl w-full max-w-md backdrop-blur-sm">
     <h2 class="text-2xl font-bold mb-6 text-blue-700">Create Account</h2>
     @if(!showConfirmation()){
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -6,20 +13,21 @@
             <input class="form-input" placeholder="Middle Name" formControlName="middleName" />
             <input class="form-input" placeholder="Last Name" formControlName="lastName" />
 
-            <input class="form-input" placeholder="Email" type="email" formControlName="email" />
+            <input class="form-input" placeholder="Email" type="email" formControlName="email"  />
             <input class="form-input" placeholder="Phone Number" type="tel" formControlName="phoneNumber" />
 
             @if (form.get('email')?.invalid && form.get('email')?.touched) {
                 <div class="text-red-500 text-sm mb-3">Please enter a valid email</div>
             }
 
-            <input class="form-input" placeholder="Password" type="password" formControlName="password" />
+            <input class="form-input" placeholder="Password" type="show() ? 'text' : password" formControlName="password" />
             @if (form.get('password')?.invalid && form.get('password')?.touched) {
-                 <div class="text-red-500 text-sm mb-3">Password must be at least 8 characters</div>
+                <div class="text-red-500 text-sm mb-3">Password must be at least 8 characters</div>
             }
             
             
-            <input class="form-input" placeholder="Confirm Password" type="password" formControlName="confirmPassword" />
+            <input class="form-input" placeholder="Confirm Password" 
+            type="password" formControlName="confirmPassword" autocomplete="new-password" />
             @if(form.errors?.['mismatch']){
                  <div  class="text-red-500 text-sm mb-3">Passwords do not match</div>
             }
@@ -60,6 +68,6 @@
     }
     <p class="mt-4 text-center text-sm">
     Already have an account?
-    <a routerLink="/auth/signin" class="text-blue-600 hover:underline text-sm">Sign In</a>
+    <a routerLink="/auth/signin" class=" link">Sign In</a>
     </p>
-<!-- </div> -->
+</div>

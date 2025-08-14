@@ -1,0 +1,24 @@
+<div class="relative max-h-[110vh] overflow-hidden">
+  <!-- Background image -->
+  <div class="absolute inset-0 -z-10 bg-blue-200 bg-blend-soft-light bg-[url('/assets/office_url2.jpg')] bg-cover bg-center"></div>
+  <!-- Color overlay that blends with your blue theme -->
+  <div class="absolute inset-0 -z-10 bg-blue-200/40 backdrop-blur-sm"></div>
+
+  <div class="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-4">
+    <h1 class="text-5xl font-extrabold text-gray-900">Welcome to JobHub</h1>
+    <p class="mt-4 max-w-lg text-gray-700">Find work, post jobs, and manage your career—easily and beautifully.</p>
+    <div class="mt-8 flex flex-col sm:flex-row gap-4">
+      <button routerLink="/auth/signin" class="btn-primary">Sign In</button>
+      <button routerLink="/auth/signup" class="btn-ghost">Sign Up</button>
+    </div>
+  </div>
+
+    <footer class=" w-full text-center text-sm text-gray-600 dark:text-gray-400 space-x-4">
+    <a routerLink="/privacy" class="link">Privacy</a>
+    <a routerLink="/contact" class="link">Contact Us</a>
+    <a routerLink="/terms" class="link">Terms</a>
+    <span>© 2025 JobHub</span>
+    </footer>   
+</div>
+
+

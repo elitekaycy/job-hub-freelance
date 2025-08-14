@@ -55,7 +55,7 @@ export class SignupComponent {
       const { firstName, middleName, lastName, email,phoneNumber, password, jobPreferences } = this.form.value;
       this.authService.signUp({ email:email!, password:password!, firstName:firstName!, middleName:middleName! ,lastName:lastName!,phoneNumber:phoneNumber!, jobPreferences:jobPreferences! }).subscribe({
           next: () => {
-            this.showConfirmation.set(true) ; // Show confirmation form
+            this.showConfirmation.set(true) ; 
             this.errorMessage = '';
             this.loading = false;
           },

@@ -8,11 +8,13 @@ import { authGuard } from './config/guard/auth.guard';
 import { guestGuard } from './config/guard/guest.guard';
 import { DeleteAccountComponent } from './auth/delete-account/delete-account.component';
 import { AuthLayoutComponent } from './pages/layout/auth-layout/auth-layout.component';
+import { LandingComponent } from './pages/landing/landing.component';
 
 export const routes: Routes = [
+  {path: '', component: LandingComponent},
   { path: 'auth', component: AuthLayoutComponent,
     children: [
-      { path: '', redirectTo: 'signin', pathMatch: 'full' },
+      { path: '', component: LandingComponent }, 
       { path: 'signup', component: SignupComponent, canActivate: [guestGuard] },
       { path: 'signin', component: SigninComponent, canActivate: [guestGuard] },
       { path: 'forgot-password', component: ForgotPasswordComponent,  canActivate: [guestGuard] },
@@ -20,12 +22,6 @@ export const routes: Routes = [
       { path: 'delete-account', component: DeleteAccountComponent, canActivate: [authGuard] },
     ]
   },
-  // { path: '', redirectTo: 'signin', pathMatch: 'full' },
-  // { path: 'signup', component: SignupComponent, canActivate: [guestGuard] },
-  // { path: 'signin', component: SigninComponent, canActivate: [guestGuard] },
-  // { path: 'forgot-password', component: ForgotPasswordComponent,  canActivate: [guestGuard] },
-  // { path: 'reset-password', component: ResetPasswordComponent,  canActivate: [guestGuard] },
-  // { path: 'delete-account', component: DeleteAccountComponent, canActivate: [authGuard] },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: '**', redirectTo: 'signin' },
+  { path: '**', redirectTo: 'auth/signin' },
 ];

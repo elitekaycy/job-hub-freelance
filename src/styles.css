@@ -15,7 +15,7 @@
     placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-accent;
 }
 .card {
-  @apply bg-white rounded-2xl p-8 shadow-soft transition hover:shadow-lg;
+  @apply rounded-2xl p-8 bg-white/20 backdrop-blur-md ring-1 ring-white/10 shadow-xl hover:shadow-2xl transition-shadow duration-200;
 }
 .link {
   @apply text-brand-primary hover:underline;
