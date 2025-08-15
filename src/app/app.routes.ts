@@ -9,6 +9,7 @@ import { guestGuard } from './config/guard/guest.guard';
 import { DeleteAccountComponent } from './auth/delete-account/delete-account.component';
 import { AuthLayoutComponent } from './pages/layout/auth-layout/auth-layout.component';
 import { LandingComponent } from './pages/landing/landing.component';
+import { DashboardLayoutComponent } from './pages/layout/dashboard-layout/dashboard-layout.component';
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -22,6 +23,17 @@ export const routes: Routes = [
       { path: 'delete-account', component: DeleteAccountComponent, canActivate: [authGuard] },
     ]
   },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: '**', redirectTo: 'auth/signin' },
+
+  {
+    path: '',
+    component: DashboardLayoutComponent,
+    // canActivate: [authGuard], // gate the whole shell
+    children: [
+      { path: 'dashboard', component: DashboardComponent },
+      // { path: 'jobs', loadComponent: () => import('./pages/jobs/jobs.component').then(m => m.JobsComponent) },
+      // { path: 'post-job', loadComponent: () => import('./pages/post-job/post-job.component').then(m => m.PostJobComponent) },
+      // { path: 'profile', loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) },
+    ]
+  },
+  { path: '**', redirectTo: 'dashboard' },
 ];

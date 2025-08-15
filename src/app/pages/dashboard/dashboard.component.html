@@ -1,64 +1,80 @@
-<div class="min-h-screen overflow-hidden">
+<div class="space-y-6">
+    <!-- Welcome card -->
+    <section class="card flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-full bg-blue-600 text-white grid place-items-center text-xl font-bold">{{ userAcronym }}</div>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Welcome, {{ userEmail }}</h2>
+          <p class="text-gray-500">Overview of your activity</p>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button routerLink="/jobs" class="btn-ghost">Explore jobs</button>
+        <button routerLink="/post-job" class="btn-primary">Post Job</button>
+      </div>
+    </section>
 
-  <div
-    class="absolute inset-0 -z-20 bg-[url('https://images.unsplash.com/photo-1516321318423-3b6e297981d8?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"
-  ></div>
-  <div class="absolute inset-0 -z-10 bg-black/30"></div>
-  <div class="max-w-5xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
-      <div class="flex items-center space-x-4">
-        @if (user$ | async; as user) {
-          <div class="profile-acronym">{{ user.acronym }}</div>
+    <!-- KPI Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="card">
+        <div class="flex justify-between items-center">
           <div>
-            <h1 class="text-3xl font-bold text-blue-800">🎯 Welcome, {{ user.email }}</h1>
-            <p class="text-gray-600">You are logged in.</p>
+            <div class="kpi-value">{{ metrics?.totalJobs ?? '—' }}</div>
+            <div class="kpi-label">Open Jobs</div>
           </div>
-        } @else {
-          <p class="text-gray-600">Loading user details...</p>
-        }
+          <div class="text-sm text-gray-500">Live</div>
+        </div>
       </div>
-      <div class="flex space-x-4">
-        <button
-          (click)="signOut()"
-          class="btn-primary"
-          [disabled]="isLoading"
-        >
-          {{ isLoading ? 'Processing...' : 'Sign Out' }}
-        </button>
-        <button
-          (click)="deleteAccount()"
-          class="btn-danger"
-          [disabled]="isLoading"
-        >
-          {{ isLoading ? 'Processing...' : 'Delete Account' }}
-        </button>
-      </div>
-    </div>
 
-    @if (successMessage) {
-      <div class="success-message mb-8 text-center">{{ successMessage }}</div>
-    }
-    @if (errorMessage) {
-      <div class="error-message mb-8 text-center">{{ errorMessage }}</div>
-    }
+      <div class="card clickable" (click)="navigate('/jobs/applied')">
+        <div>
+          <div class="kpi-value">{{ metrics?.appliedCount ?? '—' }}</div>
+          <div class="kpi-label">Applied</div>
+        </div>
+        <div class="mt-3 text-sm text-gray-500">{{ metrics?.appliedPct ?? '—' }}% of views</div>
+      </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div class="card">
-        <h2 class="text-lg font-semibold text-blue-700 mb-2">📋 Job Board</h2>
-        <p class="text-gray-600">Browse available job listings and apply to what suits you.</p>
-        <button class="mt-4 text-sm text-blue-600 hover:underline" routerLink="/jobs">Go to Jobs</button>
+      <div class="card clickable" (click)="navigate('/jobs/completed')">
+        <div>
+          <div class="kpi-value">{{ metrics?.completedCount ?? '—' }}</div>
+          <div class="kpi-label">Completed</div>
+        </div>
+        <div class="mt-3 text-sm text-gray-500">{{ metrics?.completedPct ?? '—' }}% completion</div>
       </div>
-      <div class="card">
-        <h2 class="text-lg font-semibold text-blue-700 mb-2">📝 Post a Job</h2>
-        <p class="text-gray-600">Need to hire? Post a job and find your ideal candidate.</p>
-        <button class="mt-4 text-sm text-blue-600 hover:underline" routerLink="/post-job">Create Job</button>
+
+      <div class="card clickable" (click)="navigate('/jobs/expired')">
+        <div>
+          <div class="kpi-value">{{ metrics?.expiredCount ?? '—' }}</div>
+          <div class="kpi-label">Expired</div>
+        </div>
+        <div class="mt-3 text-sm text-gray-500">Others claimed</div>
       </div>
+    </section>
+
+    <!-- Chart + Recent Activity -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="card">
-        <h2 class="text-lg font-semibold text-blue-700 mb-2">👤 Profile</h2>
-        <p class="text-gray-600">Manage your account and preferences.</p>
-        <button class="mt-4 text-sm text-blue-600 hover:underline" routerLink="/profile">View Profile</button>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold">Applications Over Time</h3>
+          <div class="text-sm text-gray-500">Last 8 days</div>
+        </div>
+        <canvas #trendCanvas class="responsive-canvas"></canvas>
       </div>
-    </div>
+
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+        <ul class="space-y-3">
+          <li *ngFor="let a of metrics?.recentActions">
+            <div class="flex justify-between items-start gap-4">
+              <div>
+                <div class="font-medium">{{ a.title }}</div>
+                <div class="text-xs text-gray-500">{{ a.status }} — {{ a.date | date:'short' }}</div>
+              </div>
+              <div class="text-sm text-gray-500">{{ a.status === 'Completed' ? '✓' : (a.status === 'Expired' ? '⚠' : '') }}</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
   </div>
-</div>
 

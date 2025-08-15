@@ -3,20 +3,26 @@
 @tailwind components;
 @tailwind utilities;
 
-.btn-primary {
+/* global utilities used by dashboard */
+:root {
+  --card-bg: rgba(255,255,255,0.85);
+  --card-bg-dark: rgba(17,24,39,0.72);
+}
+
+ .btn-primary {
   @apply inline-flex items-center justify-center h-11 px-5 rounded-lg font-semibold
     bg-brand-primary text-white hover:bg-brand-primaryDark transition-colors;
 }
-.btn-ghost {
+/* .btn-ghost {
   @apply h-11 px-4 rounded-lg font-medium text-brand-primary hover:bg-blue-50;
-}
+}  */
 .input {
   @apply w-full h-11 px-4 rounded-lg bg-white border border-blue-200 
     placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-accent;
 }
-.card {
+/* .card {
   @apply rounded-2xl p-8 bg-white/20 backdrop-blur-md ring-1 ring-white/10 shadow-xl hover:shadow-2xl transition-shadow duration-200;
-}
+} */
 .link {
   @apply text-brand-primary hover:underline;
 }
@@ -26,4 +32,36 @@
 .alert-err {
   @apply rounded-lg p-3 bg-red-100 text-red-800;
 }
+
+
+/* Reusable components */
+/* .btn-primary {
+  @apply inline-flex items-center gap-2 bg-brand-primary text-white px-4 py-2 rounded-lg shadow-md hover:bg-brand-primary-dark transition;
+} */
+.btn-ghost {
+  @apply inline-flex items-center gap-2 border border-gray-200 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition;
+}
+.btn-danger {
+  @apply inline-flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition;
+}
+
+/* Card */
+.card {
+  @apply rounded-2xl p-6 shadow-soft transition hover:shadow-lg;
+  background: var(--card-bg);
+}
+
+/* small visual helpers */
+.kpi-value { @apply text-3xl font-extrabold text-gray-900; }
+.kpi-label { @apply text-sm text-gray-500; }
+.nav-link { @apply block px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-600 hover:text-white transition; }
+.nav-active { @apply bg-blue-600 text-white; }
+
+/* soft shadow definition */
+@layer utilities {
+  .shadow-soft { box-shadow: 0 10px 30px -12px rgba(2,6,23,0.35); }
+}
+
+/* make the chart canvas responsive */
+.responsive-canvas { width: 100% !important; height: 220px !important; display:block;}
 

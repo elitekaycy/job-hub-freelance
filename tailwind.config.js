@@ -6,11 +6,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+         'brand-primary': '#2563eb',
+        'brand-primary-dark': '#1e40af',
         brand: {
           primary: "#2563eb",      // blue-600
           primaryDark: "#1e40af",  // blue-800
           accent: "#14B8A6",       // teal-500
-        },
+        }
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui"]
