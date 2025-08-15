@@ -1,14 +1,21 @@
-<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-    <h2 class="text-2xl font-bold mb-6 text-center">User Profile</h2>
+<div class="bg-gray-50 p-4 min-h-screen flex flex-col">
+  <div class="max-w-4xl mx-auto w-full">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-gray-800">User Profile</h2>
+      <div class="flex gap-4">
+        <a routerLink="/dashboard" class="btn-primary" aria-label="Return to dashboard">Back to Dashboard</a>
+        <button (click)="signOut()" class="btn-secondary" aria-label="Sign out">Sign Out</button>
+      </div>
+    </div>
 
     @if(loading) {
       <p class="text-center text-blue-600">Loading...</p>
     }
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-lg shadow-lg p-6">
+      <!-- Left Column: Personal Information -->
+      <div>
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Personal Information</h3>
         <input class="form-input" formControlName="firstName" placeholder="First Name" required />
         @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
           <p class="text-red-500 text-sm">First name is required</p>
@@ -21,22 +28,16 @@
           <p class="text-red-500 text-sm">Last name is required</p>
         }
 
-        <input class="form-input" formControlName="phoneNumber" placeholder="Phone Number" required />
+        <input class="form-input" formControlName="phoneNumber" placeholder="Phone Number" required  />
         @if (form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched) {
           <p class="text-red-500 text-sm">Phone number is required</p>
         }
       </div>
 
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-4">Job Preferences (Optional)</h3>
-        <app-multi-select [options]="jobPreferenceOptions" formControlName="jobPreferences"/>
-      </div>
-
-      <div class="section-divider"></div>
-
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-4">Change Password (Optional)</h3>
-        <input type="password" class="form-input" formControlName="oldPassword" placeholder="Old Password" />
+      <!-- Right Column: Password Change and Job Preferences -->
+      <div>
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Change Password (Optional)</h3>
+        <input type="password" class="form-input" formControlName="oldPassword" placeholder="Old Password" autocomplete="new-password" />
         <input type="password" class="form-input" formControlName="newPassword" placeholder="New Password" />
         @if (form.get('newPassword')?.invalid && form.get('newPassword')?.touched && form.get('oldPassword')?.value) {
           <p class="text-red-500 text-sm">New password must be at least 8 characters</p>
@@ -48,30 +49,44 @@
         @if (form.errors?.['required'] && form.get('oldPassword')?.value) {
           <p class="text-red-500 text-sm">All password fields are required for change</p>
         }
+
+        <h3 class="text-lg font-semibold mb-4 mt-6 text-gray-800">Job Preferences (Optional)</h3>
+        <app-multi-select [options]="jobPreferenceOptions" formControlName="jobPreferences"></app-multi-select>
+
+        @if(showVerification) {
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Verify Attribute</h3>
+            <input class="form-input" [(ngModel)]="verificationCode" placeholder="Enter verification code" aria-label="Verification code" />
+            <button class="btn-primary w-full mt-2" (click)="confirmAttribute()" [disabled]="loading || !verificationCode">
+              {{ loading ? 'Verifying...' : 'Verify' }}
+            </button>
+          </div>
+        }
       </div>
 
-      <button type="submit" class="btn-primary w-full mb-4" [disabled]="loading">Update Profile</button>
+      <!-- Submit Button (spans both columns) -->
+      <div class="md:col-span-2">
+        <button type="submit" class="btn-primary w-full" [disabled]="loading">Update Profile</button>
+      </div>
     </form>
 
     @if(errorMessage && !showDeleteConfirmation) {
-      <p class="error-message text-center">{{ errorMessage }}</p>
+      <p class="error-message text-center mt-4">{{ errorMessage }}</p>
     }
     @if(successMessage && !showDeleteConfirmation) {
-      <p class="success-message text-center">{{ successMessage }}</p>
+      <p class="success-message text-center mt-4">{{ successMessage }}</p>
     }
 
-    <div class="section-divider"></div>
-
-    <div class="mt-6">
+    <div class="mt-4 bg-white rounded-lg shadow-lg p-6">
       <h3 class="text-lg font-semibold mb-4 text-red-600">Delete Account</h3>
       <p class="text-sm text-gray-600 mb-4">Warning: This action is irreversible and will permanently delete your account and data.</p>
-      <button type="button" class="btn-danger w-full" (click)="openDeleteConfirmation()" [disabled]="loading">Delete Account</button>
+      <button type="button" class="btn-danger w-full flex justify-center items-center" (click)="openDeleteConfirmation()" [disabled]="loading">Delete Account</button>
     </div>
 
     @if(showDeleteConfirmation) {
-      <div class="modal">
+      <div class="modal" aria-modal="true" role="dialog" aria-labelledby="delete-confirm-title">
         <div class="modal-content">
-          <h3 class="text-lg font-semibold mb-4 text-red-600">Confirm Account Deletion</h3>
+          <h3 id="delete-confirm-title" class="text-lg font-semibold mb-4 text-red-600">Confirm Account Deletion</h3>
           <p class="text-sm text-gray-600 mb-4">Are you sure you want to delete your account? This action cannot be undone.</p>
           @if(errorMessage) {
             <p class="error-message">{{ errorMessage }}</p>
@@ -80,10 +95,10 @@
             <p class="success-message">{{ successMessage }}</p>
           }
           <div class="flex justify-between">
-            <button type="button" class="btn-danger" (click)="confirmDelete()" [disabled]="loading">
+            <button type="button" class="btn-danger flex justify-center items-center" (click)="confirmDelete()" [disabled]="loading">
               {{ loading ? 'Deleting...' : 'Confirm Delete' }}
             </button>
-            <button type="button" class="btn-secondary" (click)="cancelDelete()" [disabled]="loading">Cancel</button>
+            <button type="button" class="btn-secondary flex justify-center items-center" (click)="cancelDelete()" [disabled]="loading">Cancel</button>
           </div>
         </div>
       </div>

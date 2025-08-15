@@ -51,7 +51,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
   private onChange = (value: string[]) => {};
   private onTouched = () => {};
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(private readonly elementRef: ElementRef) {}
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {

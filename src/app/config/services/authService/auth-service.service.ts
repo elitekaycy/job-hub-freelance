@@ -15,6 +15,8 @@ import {
   updateUserAttributes,
   updatePassword,
   UpdateUserAttributesOutput,
+  confirmUserAttribute,
+  type VerifiableUserAttributeKey
 } from 'aws-amplify/auth';
 
 @Injectable({
@@ -137,7 +139,6 @@ export class AuthService {
       switchMap(user => 
         from(amplifyDeleteUser()).pipe(
           switchMap(() => 
-            // API call to delete DynamoDB records
             from(fetch('/api/delete-user', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -222,6 +223,16 @@ export class AuthService {
     }).pipe(
       catchError(error => {
         console.error('Change password error:', error);
+        throw error;
+      })
+    );
+  }
+
+  confirmUserAttribute(attributeKey: VerifiableUserAttributeKey, confirmationCode: string): Observable<any> {
+    return from(confirmUserAttribute({ userAttributeKey: attributeKey , confirmationCode })).pipe(
+      tap(() => console.log(`${attributeKey} verified successfully`)),
+      catchError(error => {
+        console.error('Confirm attribute error:', error);
         throw error;
       })
     );
