@@ -1,0 +1,92 @@
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center">User Profile</h2>
+
+    @if(loading) {
+      <p class="text-center text-blue-600">Loading...</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
+        <input class="form-input" formControlName="firstName" placeholder="First Name" required />
+        @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+          <p class="text-red-500 text-sm">First name is required</p>
+        }
+
+        <input class="form-input" formControlName="middleName" placeholder="Middle Name (Optional)" />
+
+        <input class="form-input" formControlName="lastName" placeholder="Last Name" required />
+        @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+          <p class="text-red-500 text-sm">Last name is required</p>
+        }
+
+        <input class="form-input" formControlName="phoneNumber" placeholder="Phone Number" required />
+        @if (form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched) {
+          <p class="text-red-500 text-sm">Phone number is required</p>
+        }
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-4">Job Preferences (Optional)</h3>
+        <app-multi-select [options]="jobPreferenceOptions" formControlName="jobPreferences"/>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-4">Change Password (Optional)</h3>
+        <input type="password" class="form-input" formControlName="oldPassword" placeholder="Old Password" />
+        <input type="password" class="form-input" formControlName="newPassword" placeholder="New Password" />
+        @if (form.get('newPassword')?.invalid && form.get('newPassword')?.touched && form.get('oldPassword')?.value) {
+          <p class="text-red-500 text-sm">New password must be at least 8 characters</p>
+        }
+        <input type="password" class="form-input" formControlName="confirmNewPassword" placeholder="Confirm New Password" />
+        @if (form.errors?.['mismatch'] && form.get('oldPassword')?.value) {
+          <p class="text-red-500 text-sm">Passwords do not match</p>
+        }
+        @if (form.errors?.['required'] && form.get('oldPassword')?.value) {
+          <p class="text-red-500 text-sm">All password fields are required for change</p>
+        }
+      </div>
+
+      <button type="submit" class="btn-primary w-full mb-4" [disabled]="loading">Update Profile</button>
+    </form>
+
+    @if(errorMessage && !showDeleteConfirmation) {
+      <p class="error-message text-center">{{ errorMessage }}</p>
+    }
+    @if(successMessage && !showDeleteConfirmation) {
+      <p class="success-message text-center">{{ successMessage }}</p>
+    }
+
+    <div class="section-divider"></div>
+
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold mb-4 text-red-600">Delete Account</h3>
+      <p class="text-sm text-gray-600 mb-4">Warning: This action is irreversible and will permanently delete your account and data.</p>
+      <button type="button" class="btn-danger w-full" (click)="openDeleteConfirmation()" [disabled]="loading">Delete Account</button>
+    </div>
+
+    @if(showDeleteConfirmation) {
+      <div class="modal">
+        <div class="modal-content">
+          <h3 class="text-lg font-semibold mb-4 text-red-600">Confirm Account Deletion</h3>
+          <p class="text-sm text-gray-600 mb-4">Are you sure you want to delete your account? This action cannot be undone.</p>
+          @if(errorMessage) {
+            <p class="error-message">{{ errorMessage }}</p>
+          }
+          @if(successMessage) {
+            <p class="success-message">{{ successMessage }}</p>
+          }
+          <div class="flex justify-between">
+            <button type="button" class="btn-danger" (click)="confirmDelete()" [disabled]="loading">
+              {{ loading ? 'Deleting...' : 'Confirm Delete' }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="cancelDelete()" [disabled]="loading">Cancel</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

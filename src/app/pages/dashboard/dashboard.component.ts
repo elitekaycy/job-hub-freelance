@@ -18,8 +18,8 @@ Chart.register(...registerables);
 })
 export class DashboardComponent  {
   metrics: any = null;
-  userEmail = 'you@example.com'; // replace with actual user$
-  userAcronym = 'U';
+  userEmail = 'samuel.johnson@jobhub.com'; // replace with actual user$
+  userAcronym = 'SJ';
   private readonly metricsSvc = inject(MetricsService);
   private readonly router = inject(Router);
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, from, BehaviorSubject, of } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { Observable, from, BehaviorSubject, of, defer } from 'rxjs';
+import { tap, catchError, map, switchMap } from 'rxjs/operators';
 
 import { 
   signUp as amplifySignUp, 
@@ -10,7 +10,11 @@ import {
   confirmSignUp as amplifyConfirmSignUp,
   resetPassword as amplifyResetPassword,
   confirmResetPassword as amplifyConfirmResetPassword,
-  deleteUser as amplifyDeleteUser
+  deleteUser as amplifyDeleteUser,
+  fetchUserAttributes,
+  updateUserAttributes,
+  updatePassword,
+  UpdateUserAttributesOutput,
 } from 'aws-amplify/auth';
 
 @Injectable({
@@ -129,13 +133,95 @@ export class AuthService {
   }
 
   deleteUser(): Observable<any> {
-    return from(amplifyDeleteUser()).pipe(
-      tap(() => {
-        this.isAuthenticatedSubject.next(false);
-        console.log('User deleted successfully');
-      }),
+    return from(getCurrentUser()).pipe(
+      switchMap(user => 
+        from(amplifyDeleteUser()).pipe(
+          switchMap(() => 
+            // API call to delete DynamoDB records
+            from(fetch('/api/delete-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user.username })
+            })).pipe(
+              map(() => ({ success: true })),
+              catchError(error => {
+                console.error('DynamoDB cleanup error:', error);
+                throw error;
+              })
+            )
+          ),
+          tap(() => {
+            this.isAuthenticatedSubject.next(false);
+            console.log('User deleted successfully');
+          }),
+          catchError(error => {
+            console.error('Delete user error:', error);
+            throw error;
+          })
+        )
+      )
+    );
+  }
+
+  getUserAttributes(): Observable<{
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    phoneNumber: string;
+    jobPreferences: string[];
+  }> {
+    return from(fetchUserAttributes()).pipe(
+      map(attributes => ({
+        firstName: attributes.given_name || '',
+        middleName: attributes.middle_name || '',
+        lastName: attributes.family_name || '',
+        phoneNumber: attributes.phone_number || '',
+        jobPreferences: attributes['custom:job_category_ids'] ? JSON.parse(attributes['custom:job_category_ids']) : []
+      })),
       catchError(error => {
-        console.error('Delete user error:', error);
+        console.error('Get user attributes error:', error);
+        throw error;
+      })
+    );
+  }
+
+  updateUserAttributes(updates: {
+    firstName?: string;
+    middleName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    jobPreferences?: string[];
+  }): Observable<UpdateUserAttributesOutput> {
+
+  const attributesPayload = {
+    userAttributes: {
+      ...(updates.firstName && { given_name: updates.firstName }),
+      ...(updates.middleName && { middle_name: updates.middleName }),
+      ...(updates.lastName && { family_name: updates.lastName }),
+      ...(updates.phoneNumber && { phone_number: updates.phoneNumber }),
+      ...(updates.jobPreferences && { 'custom:job_category_ids': JSON.stringify(updates.jobPreferences) })
+    }
+  };
+    return defer(async () => {
+      const result = await updateUserAttributes(attributesPayload);
+      console.log('User attributes updated successfully:', result);
+      return result; 
+    }).pipe(
+      catchError(error => {
+        console.error('Update user attributes error:', error);
+        throw error;
+      })
+    );
+  }
+
+  changePassword(oldPassword: string, newPassword: string): Observable<{ success: boolean }> {
+    return defer(async () => {
+      await updatePassword({ oldPassword, newPassword });
+      console.log('Password changed successfully');
+      return { success: true }; 
+    }).pipe(
+      catchError(error => {
+        console.error('Change password error:', error);
         throw error;
       })
     );
