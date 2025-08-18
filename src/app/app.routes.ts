@@ -25,7 +25,7 @@ export const routes: Routes = [
   {
     path: '',
     component: DashboardLayoutComponent,
-    // canActivate: [authGuard], // gate the whole shell
+    canActivate: [authGuard], // gate the whole shell
     children: [
       { path: 'dashboard', component: DashboardComponent },
       // { path: 'jobs', loadComponent: () => import('./pages/jobs/jobs.component').then(m => m.JobsComponent) },

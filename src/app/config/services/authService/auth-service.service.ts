@@ -60,14 +60,17 @@ export class AuthService {
         }
       }
     }
+
+    console.log(signUpPayload,"upload payload");
+    return of(signUpPayload);
   
-    return from(amplifySignUp(signUpPayload)).pipe(
-      tap((response) => console.log('Sign-up response:', response)),
-      catchError(error => {
-        console.error('Sign-up error:', error);
-        throw error;
-      })
-    );
+    // return from(amplifySignUp(signUpPayload)).pipe(
+    //   tap((response) => console.log('Sign-up response:', response)),
+    //   catchError(error => {
+    //     console.error('Sign-up error:', error);
+    //     throw error;
+    //   })
+    // );
   }  
   
   // Add confirmation method for email verification
