@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink,ActivatedRoute} from '@angular/router';
 import { AuthService } from '../../config/services/authService/auth-service.service';
+import { BackdropComponent } from '../../pages/layout/backdrop/backdrop.component';
 
 
 @Component({
   selector: 'app-signin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink,BackdropComponent],
   templateUrl: './signin.component.html',
    styles: [`
     .form-input {

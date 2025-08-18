@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../config/services/authService/auth-service.service';
+import { BackdropComponent } from '../../pages/layout/backdrop/backdrop.component';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule,CommonModule, RouterLink],
+  imports: [ReactiveFormsModule,CommonModule, RouterLink,BackdropComponent],
   templateUrl: './forgot-password.component.html',
   styles: [`
     .form-input {
@@ -57,6 +58,6 @@ export class ForgotPasswordComponent {
 
   navigateToReset() {
     const email = this.form.value.email!.trim();
-    this.router.navigate(['/reset-password'], { queryParams: { email } });
+    this.router.navigate(['/auth/reset-password'], { queryParams: { email } });
   }
 }

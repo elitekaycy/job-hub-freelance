@@ -5,11 +5,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../config/services/authService/auth-service.service';
 import { MultiSelectComponent } from '../../components/multiselect/multiselect.component';
 import { jobPreferenceOptions } from '../../config/data/jobs.data';
+import { BackdropComponent } from '../../pages/layout/backdrop/backdrop.component';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink,MultiSelectComponent,FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink,MultiSelectComponent,FormsModule,BackdropComponent],
   templateUrl: './signup.component.html',
   styles: [`
   .form-input {
@@ -75,7 +76,7 @@ export class SignupComponent {
         next: () => {
           this.loading = false;
           this.errorMessage = '';
-          this.router.navigate(['/signin']);
+          this.router.navigate(['/auth/signin']);
         },
         error: (err) => {
           this.loading = false;

@@ -14,18 +14,19 @@ export const routes: Routes = [
   {path: '', component: LandingComponent},
   { path: 'auth', component: AuthLayoutComponent,
     children: [
-      { path: '', component: LandingComponent }, 
-      { path: 'signup', component: SignupComponent, canActivate: [guestGuard] },
+      { path: 'signup', component: SignupComponent, canActivate: [guestGuard]},
       { path: 'signin', component: SigninComponent, canActivate: [guestGuard] },
-      { path: 'forgot-password', component: ForgotPasswordComponent,  canActivate: [guestGuard] },
-      { path: 'reset-password', component: ResetPasswordComponent,  canActivate: [guestGuard] },
+      { path: 'forgot-password', component: ForgotPasswordComponent, canActivate: [guestGuard]},
+      { path: 'reset-password', component: ResetPasswordComponent, canActivate: [guestGuard]},
+      // Redirect invalid auth paths
+      { path: '**', redirectTo: 'signin' }
     ]
   },
-
+  // Protected routes (only for authenticated)
   {
     path: '',
     component: DashboardLayoutComponent,
-    canActivate: [authGuard], // gate the whole shell
+    canActivate: [authGuard], 
     children: [
       { path: 'dashboard', component: DashboardComponent },
       // { path: 'jobs', loadComponent: () => import('./pages/jobs/jobs.component').then(m => m.JobsComponent) },
@@ -33,5 +34,10 @@ export const routes: Routes = [
       { path: 'profile', loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) },
     ]
   },
-  { path: '**', redirectTo: 'dashboard' },
+    // Wildcard handling
+  { 
+    path: '**',
+    canActivate: [authGuard], 
+    children: [] 
+  }
 ];

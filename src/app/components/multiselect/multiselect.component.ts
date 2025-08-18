@@ -66,7 +66,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
     if (this.isOpen()) {
       this.onTouched();
     }
-    event.stopPropagation();
+   event.stopPropagation(); 
   }
 
   closeDropdown(): void {
