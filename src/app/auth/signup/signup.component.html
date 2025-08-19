@@ -1,109 +1,125 @@
+<!-- Replace the existing <form> with this -->
 <app-backdrop>
-    <h2 class="text-3xl font-bold mb-6 text-center text-blue-600">Create Account</h2>
-
-    @if (!showConfirmation()) {
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-        <div>
-        <input 
+ <h2 class="text-3xl font-bold mb-6 text-center text-blue-600">Create Account</h2>
+ @if (!showConfirmation()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+    <!-- First Name -->
+        <div class="md:col-span-1">
+            <input 
             formControlName="firstName" 
             class="form-input" 
             placeholder="First Name" 
             type="text">
-        @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
-            <p class="text-red-500 text-sm">First name is required</p>
-        }
+            @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+                <p class="text-red-500 text-sm">First name is required</p>
+            }
         </div>
 
-        <div>
-        <input 
+        <!-- Last Name -->
+        <div class="md:col-span-1">
+            <input 
+            formControlName="lastName" 
+            class="form-input" 
+            placeholder="Last Name" 
+            type="text">
+            @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+                <p class="text-red-500 text-sm">Last name is required</p>
+            }
+        </div>
+
+        <!-- Middle Name (Full Width) -->
+        <div class="md:col-span-2">
+            <input 
             formControlName="middleName" 
             class="form-input" 
             placeholder="Middle Name (Optional)" 
             type="text">
         </div>
 
-        <div>
-        <input 
-            formControlName="lastName" 
-            class="form-input" 
-            placeholder="Last Name" 
-            type="text">
-        @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
-            <p class="text-red-500 text-sm">Last name is required</p>
-        }
-        </div>
-
-        <div>
-        <input 
+        <!-- Email -->
+        <div class="md:col-span-2">
+            <input 
             formControlName="email" 
             class="form-input" 
             placeholder="Email" 
             type="email">
-        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
             <p class="text-red-500 text-sm">Please enter a valid email</p>
-        }
+            }
         </div>
 
-        <div>
-        <input 
-            formControlName="phoneNumber" 
-            class="form-input" 
-            placeholder="Phone Number" 
-            type="tel">
-        @if (form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched) {
-            <p class="text-red-500 text-sm">Phone number is required</p>
-        }
+        <!-- Phone Number -->
+        <div  class="md:col-span-2">
+            <div class="phone-input-container">
+                <input 
+                formControlName="phoneNumber"
+                class="form-input"
+                placeholder="(+123)-XXX-XXX-XXX"
+                maxlength="12"
+                >
+                <span class="validation-icon text-red-500" *ngIf="form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched">
+                <i class="fas fa-times-circle"></i>
+                </span>
+            </div>
+            <div class="validation-message text-red-500 text-sm mt-1" *ngIf="form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched">
+                Please enter a valid phone number
+            </div>
         </div>
 
-        <div>
-        <input 
+        <!-- Password -->
+        <div class="md:col-span-1">
+            <input 
             formControlName="password" 
             class="form-input" 
             placeholder="Password" 
             type="password">
-        @if (form.get('password')?.invalid && form.get('password')?.touched) {
-            <p class="text-red-500 text-sm">Password must be at least 8 characters</p>
-        }
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+                <p class="text-red-500 text-sm">Password must be at least 8 characters</p>
+            }
         </div>
 
-        <div>
-        <input 
+        <!-- Confirm Password -->
+        <div class="md:col-span-1">
+            <input 
             formControlName="confirmPassword" 
             class="form-input" 
             placeholder="Confirm Password" 
             type="password">
-        @if (form.errors?.['mismatch'] && form.get('confirmPassword')?.touched) {
-            <p class="text-red-500 text-sm">Passwords do not match</p>
-        }
+            @if (form.errors?.['mismatch'] && form.get('confirmPassword')?.touched) {
+                <p class="text-red-500 text-sm">Passwords do not match</p>
+            }
         </div>
 
-        <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="jobPreferences">Job Preferences (Optional)</label>
-        <app-multi-select
+        <!-- Job Preferences -->
+        <div class="md:col-span-2" >
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="jobPreferences">Job Preferences (Optional)</label>
+            <app-multi-select
             [options]="jobPreferenceOptions"
             formControlName="jobPreferences"
-            placeholder="Select job preferences">
-        </app-multi-select>
+            placeholder="Select job preferences"
+
+            >
+            </app-multi-select>
         </div>
 
-        <button 
-        type="submit" 
-        class="btn-primary w-full" 
-        [disabled]="loading">
-        Sign Up
-        </button>
-        
-        @if (errorMessage) {
-        <p class="text-red-500 text-center">{{ errorMessage }}</p>
-        }
-        
-        @if (loading) {
-        <p class="text-center text-gray-600">Loading...</p>
-        }
-    </form>
-    }
+        <!-- Submit Button -->
+        <div class="md:col-span-2">
+            <button 
+            type="submit" 
+            class="btn-primary w-full" 
+            [disabled]="loading">
+            {{ loading ? 'Signing Up...' : 'Sign Up' }}
+            </button>
+            
+            <!-- Error Messages -->
+            @if (errorMessage) {
+            <p class="text-red-500 text-center">{{ errorMessage }}</p>
+            }
+        </div>
+    </form> 
+}
 
-    @if (showConfirmation()) {
+ @if (showConfirmation()) {
     <div class="space-y-4">
         <input 
         class="form-input" 
@@ -115,17 +131,14 @@
         class="btn-primary w-full" 
         (click)="onConfirm()" 
         [disabled]="loading">
-        Confirm
+        {{ loading ? 'Confirming...' : 'Confirm' }} 
         </button>
 
         @if (errorMessage) {
         <p class="text-red-500 text-center">{{ errorMessage }}</p>
         }
-        @if (loading) {
-        <p class="text-center text-gray-600">Loading...</p>
-        }
     </div>
-    }
+ }
 
     <p class="text-center mt-4">
     Already have an account? 

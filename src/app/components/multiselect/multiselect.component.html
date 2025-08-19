@@ -27,21 +27,21 @@
       @if (filteredOptions().length === 0) {
         <div class="p-2 text-gray-500">No options found</div>
       }
-      @for (option of filteredOptions(); track option.id) {
+      @for (option of filteredOptions(); track option.categoryId) {
         <div class="flex items-center px-3 py-2 cursor-pointer hover:bg-blue-50 transition-colors duration-150">
           <input
             type="checkbox"
-            [id]="'option-' + option.id"
-            [checked]="isSelected(option.id)"
+            [id]="'option-' + option.categoryId"
+            [checked]="isSelected(option.categoryId)"
             (change)="toggleOption(option, $event)"
             class="mr-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" 
           />
-          <label [for]="'option-' + option.id" class="flex-grow text-sm font-medium text-gray-700 cursor-pointer">
+          <label [for]="'option-' + option.categoryId" class="flex-grow text-sm font-medium text-gray-700 cursor-pointer">
             {{ option.name }}
           </label>
-          @if (option.category) {
+          @if (option.description) {
             <span class="text-sm text-gray-600  ml-auto px-2 py-1  font-medium  bg-gray-100 rounded-full ">
-              {{ option.category }}
+              {{ option.description }}
             </span>
           }
         </div>

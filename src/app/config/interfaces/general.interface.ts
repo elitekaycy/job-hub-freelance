@@ -13,7 +13,7 @@ export interface SignUpData {
   jobPreferences: string[]; // Array of preference IDs
 }
 
-
+export interface UserData extends Omit<SignUpData, 'username' | 'password' | 'jobPreferences'> {}
 export interface SignInData {
   username: string;
   password: string;
@@ -29,4 +29,18 @@ export   interface SelectOption {
     id: string;
     name: string;
     category: string;
+}
+
+export interface Categories {
+  categoryId: string;
+  name: string;
+  description:string;
+  snsTopicArn: string;
+  createdAt: string|null;
+}
+
+
+export interface CategoriesResponse {
+  categories:Categories[]
+  count:number
 }

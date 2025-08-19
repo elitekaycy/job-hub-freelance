@@ -3,6 +3,9 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MetricsService } from "../../../app/config/services/metricsService/metrics.service"; // adjust path
 import { Chart, registerables } from 'chart.js';
+import { AuthService } from '../../config/services/authService/auth-service.service';
+import { UserData } from '../../config/interfaces/general.interface';
+import { getUserAcroynm } from '../../utils/utils';
 
 Chart.register(...registerables);
 
@@ -16,21 +19,33 @@ Chart.register(...registerables);
     .clickable { @apply cursor-pointer; }
   `]
 })
-export class DashboardComponent  {
+export class DashboardComponent implements AfterViewInit, OnInit {
   metrics: any = null;
-  userEmail = 'samuel.johnson@jobhub.com'; // replace with actual user$
   userAcronym = 'SJ';
+  userData: UserData = { email: '', firstName: '', lastName: '' };
   private readonly metricsSvc = inject(MetricsService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
   @ViewChild('trendCanvas', { static: false }) trendCanvas!: ElementRef<HTMLCanvasElement>;
   chart: any;
 
   ngOnInit() {
+
+    //Load user 
+    this.loadUser();
     // load metrics (replace with real service)
     this.metricsSvc.getMetrics().subscribe(m => {
       this.metrics = m;
-      // optional: update user fields if you have user$
+    });
+  }
+
+  loadUser() {
+    let user: UserData;
+    this.authService.getUserAttributes().subscribe((res) => {
+      user={firstName:res.firstName, lastName:res.lastName, email:res.email};
+      this.userData = user;
+      this.userAcronym = getUserAcroynm((this.userData.firstName + ' ' + this.userData.lastName).trim());
     });
   }
 

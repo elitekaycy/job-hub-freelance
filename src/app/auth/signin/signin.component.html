@@ -6,7 +6,7 @@
       <input type="password" placeholder="Password" formControlName="password"
              class="form-input" autocomplete="new-password"/>
       <button type="submit" class="btn-primary w-full mt-2" [disabled]="form.invalid">
-        Sign In
+        {{ loading ? 'Signing In...' : 'Sign In' }}
       </button>
 
       @if(errorMessage){

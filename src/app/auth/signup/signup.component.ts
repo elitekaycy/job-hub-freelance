@@ -3,9 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors,FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../config/services/authService/auth-service.service';
+import { ApiService } from '../../config/services/apiService/api.service';
 import { MultiSelectComponent } from '../../components/multiselect/multiselect.component';
-import { jobPreferenceOptions } from '../../config/data/jobs.data';
-import { BackdropComponent } from '../../pages/layout/backdrop/backdrop.component';
+import { BackdropComponent } from '../../pages/layout/backdrop/backdrop.component'; 
+import { Categories } from '../../config/interfaces/general.interface';
+import { intlPhoneValidator } from '../../utils/utils';
+
 
 @Component({
   selector: 'app-signup',
@@ -24,7 +27,8 @@ import { BackdropComponent } from '../../pages/layout/backdrop/backdrop.componen
 
 export class SignupComponent {
   authService = inject(AuthService);
-  jobPreferenceOptions = jobPreferenceOptions;
+  apiService = inject(ApiService);
+  jobPreferenceOptions:Categories[] = [];
   showConfirmation = signal(false);
   confirmationCode = signal('');
   errorMessage = '';
@@ -42,6 +46,15 @@ export class SignupComponent {
   },{ validators: this.passwordMatchValidator });
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {}
+  async ngOnInit() {
+    try {
+      const jobPreferences= await this.apiService.getCategories()
+      this.jobPreferenceOptions = jobPreferences;  
+    }catch(err){
+      this.errorMessage = 'Failed to load categories.';
+      console.log(err);
+    }
+  }
 
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -51,6 +64,7 @@ export class SignupComponent {
   }
 
   onSubmit() {
+    console.log(this.form.value,this.form.valid,"status",this.form.errors);
     if (this.form.valid) {
       this.loading = true;
       const { firstName, middleName, lastName, email,phoneNumber, password, jobPreferences } = this.form.value;

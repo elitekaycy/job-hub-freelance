@@ -2,15 +2,14 @@
   <div class="max-w-4xl mx-auto w-full">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold text-gray-800">User Profile</h2>
-      <div class="flex gap-4">
+      <!-- <div class="flex gap-4">
         <a routerLink="/dashboard" class="btn-primary" aria-label="Return to dashboard">Back to Dashboard</a>
         <button (click)="signOut()" class="btn-secondary" aria-label="Sign out">Sign Out</button>
-      </div>
+      </div> -->
+        @if(loading) {
+        <p class="text-center text-2xl mr-8 text-blue-600">Loading...</p>
+      }
     </div>
-
-    @if(loading) {
-      <p class="text-center text-blue-600">Loading...</p>
-    }
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-lg shadow-lg p-6">
       <!-- Left Column: Personal Information -->

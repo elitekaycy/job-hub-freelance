@@ -1,7 +1,8 @@
 import { Component, input, output, signal, computed, forwardRef, ElementRef, HostListener } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { SelectOption } from '../../config/interfaces/general.interface';
+import { Categories } from '../../config/interfaces/general.interface';
+
 
 @Component({
   selector: 'app-multi-select',
@@ -17,7 +18,7 @@ import { SelectOption } from '../../config/interfaces/general.interface';
   ]
 })
 export class MultiSelectComponent implements ControlValueAccessor {
-  options = input<SelectOption[]>([]);
+  options = input<Categories[]>([]);
   placeholder = input<string>('Select options...');
   searchable = input<boolean>(true);
   disabled = input<boolean>(false);
@@ -32,8 +33,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
     const search = this.searchTerm().toLowerCase().trim();
     if (!search) return this.options() || [];
     return (this.options() || []).filter(option =>
-      (option.name?.toLowerCase()?.includes(search) || 
-       option.category?.toLowerCase()?.includes(search) || false)
+      (option.name?.toLowerCase()?.includes(search)  ||
+      option.description?.toLowerCase()?.includes(search) || false)
     );
     // Simplified logic, ensured || false for safety
   });
@@ -42,7 +43,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
     const selected = this.selectedValues();
     if (selected.length === 0) return this.placeholder();
     if (selected.length === 1) {
-      const option = this.options().find(o => o.id === selected[0]);
+      const option = this.options().find(o => o.categoryId === selected[0]);
       return option?.name || this.placeholder();
     }
     return `${selected.length} options selected`;
@@ -74,14 +75,14 @@ export class MultiSelectComponent implements ControlValueAccessor {
     this.searchTerm.set('');
   }
 
-  toggleOption(option: SelectOption, event?: Event): void {
+  toggleOption(option: Categories, event?: Event): void {
     if (this.disabled()) return;
     event?.stopPropagation();
     const currentValues = this.selectedValues();
-    const index = currentValues.indexOf(option.id);
+    const index = currentValues.indexOf(option.categoryId);
     const newValues = index > -1
-      ? currentValues.filter(id => id !== option.id)
-      : [...currentValues, option.id];
+      ? currentValues.filter(id => id !== option.categoryId)
+      : [...currentValues, option.categoryId];
 
     this.selectedValues.set(newValues);
     this.onChange(newValues);

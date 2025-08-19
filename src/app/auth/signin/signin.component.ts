@@ -28,6 +28,7 @@ export class SigninComponent {
     password: ['', Validators.required]
   });
   errorMessage = '';
+  loading = false;
 
   constructor(
     private readonly fb: FormBuilder, 
@@ -42,14 +43,16 @@ export class SigninComponent {
 
   onSubmit() {
     if (this.form.valid) {
+      this.loading = true;
       const { email, password } = this.form.value;
       this.authService.signIn({email: email!, password: password!}).subscribe({
         next: (result) => {
+          this.loading = false;
           console.log('Sign in result:', result);
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
           this.router.navigate([returnUrl]);
         },
-        error: err => this.errorMessage = err.message || 'Login failed'
+        error: err => {this.errorMessage = err.message || 'Login failed'; this.loading=false;}
       });
     }
   }

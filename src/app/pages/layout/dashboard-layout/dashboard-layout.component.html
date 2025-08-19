@@ -4,10 +4,10 @@
       <div class="px-2 py-4 text-2xl font-bold text-brand-primary">JobHub</div>
 
       <nav class="mt-4 flex-1 space-y-1">
-        <a routerLink="/dashboard" routerLinkActive="nav-active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">🏠 Overview</a>
-        <a routerLink="/jobs" routerLinkActive="nav-active" class="nav-link">📋 Job Board</a>
-        <a routerLink="/post-job" routerLinkActive="nav-active" class="nav-link">📝 Post a Job</a>
-        <a routerLink="/profile" routerLinkActive="nav-active" class="nav-link">👤 Profile</a>
+        <a routerLink="/dashboard" routerLinkActive="nav-active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="onClickRouterLink('Dashboard')">🏠 Overview</a>
+        <a routerLink="/jobs" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Job Board')">📋 Job Board</a>
+        <a routerLink="/post-job" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Post Job')">📝 Post a Job</a>
+        <a routerLink="/profile" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Profile')">👤 Profile</a>
       </nav>
 
       <div class="mt-auto text-xs text-gray-500 px-2 py-3">© 2025 JobHub</div>
@@ -20,12 +20,12 @@
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <button class="md:hidden btn-ghost" (click)="mobileOpen = !mobileOpen">☰</button>
-            <div class="text-lg font-semibold">Dashboard</div>
+            <div class="text-lg font-semibold">{{ currentRoute}}</div>
           </div>
 
           <div class="flex items-center gap-3">
-            <a routerLink="/jobs" class="btn-ghost">Find jobs</a>
-            <a routerLink="/post-job" class="btn-primary">Post a Job</a>
+            <!-- <a routerLink="/jobs" class="btn-ghost">Find jobs</a>
+            <a routerLink="/post-job" class="btn-primary">Post a Job</a> -->
             <button (click)="signOut()" class="btn-danger" [disabled]="isLoading">{{ isLoading ? 'Signing out…' : 'Sign out' }}</button>
           </div>
         </div>
@@ -33,10 +33,10 @@
         <!-- Mobile nav -->
         <div *ngIf="mobileOpen" class="md:hidden border-t bg-white">
           <nav class="px-3 py-2 space-y-1">
-            <a routerLink="/dashboard" class="nav-link block">🏠 Overview</a>
-            <a routerLink="/jobs" class="nav-link block">📋 Job Board</a>
-            <a routerLink="/post-job" class="nav-link block">📝 Post a Job</a>
-            <a routerLink="/profile" class="nav-link block">👤 Profile</a>
+            <a routerLink="/dashboard" class="nav-link block" (click)="onClickRouterLink('Dashboard')">🏠 Overview</a>
+            <a routerLink="/jobs" class="nav-link block" (click)="onClickRouterLink('Job Board')">📋 Job Board</a>
+            <a routerLink="/post-job" class="nav-link block" (click)="onClickRouterLink('Post Job')">📝 Post a Job</a>
+            <a routerLink="/profile" class="nav-link block" (click)="onClickRouterLink('Profile')">👤 Profile</a>
           </nav>
         </div>
       </header>

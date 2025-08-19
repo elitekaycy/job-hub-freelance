@@ -169,6 +169,7 @@ export class AuthService {
     middleName: string;
     lastName: string;
     phoneNumber: string;
+    email: string;
     jobPreferences: string[];
   }> {
     return from(fetchUserAttributes()).pipe(
@@ -176,6 +177,7 @@ export class AuthService {
         firstName: attributes.given_name || '',
         middleName: attributes.middle_name || '',
         lastName: attributes.family_name || '',
+        email: attributes.email || '',
         phoneNumber: attributes.phone_number || '',
         jobPreferences: attributes['custom:job_category_ids'] ? JSON.parse(attributes['custom:job_category_ids']) : []
       })),

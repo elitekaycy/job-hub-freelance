@@ -7,6 +7,8 @@ import { MultiSelectComponent } from '../../components/multiselect/multiselect.c
 import { jobPreferenceOptions } from '../../config/data/jobs.data';
 import { VerifiableUserAttributeKey, type UpdateUserAttributesOutput } from 'aws-amplify/auth';
 import { switchMap } from 'rxjs';
+import { ApiService } from '../../config/services/apiService/api.service';
+import { Categories } from '../../config/interfaces/general.interface';
 
 @Component({
   selector: 'app-profile',
@@ -45,8 +47,9 @@ import { switchMap } from 'rxjs';
 })
 export class ProfileComponent implements OnInit {
   authService = inject(AuthService);
+  apiService = inject(ApiService);
   router = inject(Router);
-  jobPreferenceOptions = jobPreferenceOptions;
+  jobPreferenceOptions: Categories[] = [] ;
   errorMessage = '';
   successMessage = '';
   loading = false;
@@ -69,6 +72,7 @@ export class ProfileComponent implements OnInit {
   constructor(private readonly fb: FormBuilder) {}
 
   ngOnInit() {
+    this.loadJobPreferences();
     this.loading = true;
     this.authService.getUserAttributes().subscribe({
       next: (userData) => {
@@ -86,6 +90,17 @@ export class ProfileComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+
+  async loadJobPreferences(){
+      try {
+      const jobPreferences= await this.apiService.getCategories()
+      this.jobPreferenceOptions = jobPreferences;  
+    }catch(err){
+      this.errorMessage = 'Failed to load categories.';
+      console.log(err);
+    } 
   }
 
   passwordChangeValidator(control: AbstractControl): ValidationErrors | null {
