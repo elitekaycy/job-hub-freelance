@@ -4,6 +4,12 @@ export interface JobPreference {
   category: string;
 }
 
+export interface JobCategory {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface SignUpData {
   username: string;
   password: string;

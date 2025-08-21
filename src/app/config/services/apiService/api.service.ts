@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Categories, CategoriesResponse } from '../../interfaces/general.interface';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 // import {get} from '@aws-amplify/api';
 
 
@@ -9,20 +12,15 @@ import { Categories, CategoriesResponse } from '../../interfaces/general.interfa
 })
 export class ApiService {
 
-  constructor() {}
+  constructor(private readonly http: HttpClient) {}
+
+  private readonly apiUrl = environment.baseURL; // Replace with Amplify endpoint
 
   // Fetch data from the /categories endpoint
   async getCategories():Promise<Categories[]> {
     try {
-      // const response = await get({ 
-      //   apiName: 'categories', 
-      //   path:'/categories'
-      // }).response;
-
-      const response = await fetch('https://hc4mdt2ga4.execute-api.eu-central-1.amazonaws.com/dev/categories');
-
+      const response = await fetch(this.apiUrl+'/categories');
       const data= await response.json() as CategoriesResponse; 
-      // console.log('Categories fetched:', data);
       return data.categories;
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -45,5 +43,9 @@ export class ApiService {
   //     throw error;
   //   }
   // }
+
+  postJob(job: any): Observable<any> {
+    return this.http.post(this.apiUrl+'/job/owner/create', job);
+  }
 
 }

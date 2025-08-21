@@ -11,33 +11,54 @@ import { LandingComponent } from './pages/landing/landing.component';
 import { DashboardLayoutComponent } from './pages/layout/dashboard-layout/dashboard-layout.component';
 
 export const routes: Routes = [
-  {path: '', component: LandingComponent},
-  { path: 'auth', component: AuthLayoutComponent,
+  { path: '', component: LandingComponent },
+  {
+    path: 'auth',
+    component: AuthLayoutComponent,
     children: [
-      { path: 'signup', component: SignupComponent, canActivate: [guestGuard]},
+      { path: 'signup', component: SignupComponent, canActivate: [guestGuard] },
       { path: 'signin', component: SigninComponent, canActivate: [guestGuard] },
-      { path: 'forgot-password', component: ForgotPasswordComponent, canActivate: [guestGuard]},
-      { path: 'reset-password', component: ResetPasswordComponent, canActivate: [guestGuard]},
+      {
+        path: 'forgot-password',
+        component: ForgotPasswordComponent,
+        canActivate: [guestGuard],
+      },
+      {
+        path: 'reset-password',
+        component: ResetPasswordComponent,
+        canActivate: [guestGuard],
+      },
       // Redirect invalid auth paths
-      { path: '**', redirectTo: 'signin' }
-    ]
+      { path: '**', redirectTo: 'signin' },
+    ],
   },
   // Protected routes (only for authenticated)
   {
     path: '',
     component: DashboardLayoutComponent,
-    // canActivate: [authGuard], 
+    canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: DashboardComponent },
       // { path: 'jobs', loadComponent: () => import('./pages/jobs/jobs.component').then(m => m.JobsComponent) },
-      // { path: 'post-job', loadComponent: () => import('./pages/post-job/post-job.component').then(m => m.PostJobComponent) },
-      { path: 'profile', loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) },
-    ]
+      {
+        path: 'post-job',
+        loadComponent: () =>
+          import('./pages/jobs/post-job/job-post.component').then(
+            (m) => m.JobPostComponent
+          ),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./pages/profile/profile.component').then(
+            (m) => m.ProfileComponent
+          ),
+      },
+    ],
   },
-    // Wildcard handling
-  { 
+  {
     path: '**',
-    canActivate: [authGuard], 
-    children: [] 
-  }
+    canActivate: [authGuard],
+    children: [],
+  },
 ];
