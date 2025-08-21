@@ -58,3 +58,13 @@
 /* make the chart canvas responsive */
 .responsive-canvas { width: 100% !important; height: 220px !important; display:block;}
 
+
+html, body { height: 100% }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.job-post-container {
+  @apply max-w-md mx-auto p-6 bg-white rounded-lg shadow-soft;
+}
+mat-form-field {
+  @apply w-full mb-4;
+}

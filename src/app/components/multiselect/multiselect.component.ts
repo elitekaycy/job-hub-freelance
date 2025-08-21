@@ -95,7 +95,6 @@ export class MultiSelectComponent implements ControlValueAccessor {
 
   onSearchChange(): void {
     // Triggered by ngModelChange to ensure immediate updates
-    // No need to manually set searchTerm since ngModel handles it
     this.filteredOptions(); // Force recomputation of filtered options
   }
 

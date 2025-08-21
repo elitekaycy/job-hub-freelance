@@ -1,74 +1,59 @@
-<div class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow-md">
-  <h2 class="text-2xl font-bold mb-6 text-gray-800">Post a New Job</h2>
+<div class="job-post-container">
+  <h1 class="text-2xl font-bold text-blue-700 mb-6 border-b-2 border-brand-primary pb-2 text-center">Create a New Job Listing</h1>
 
-  <form [formGroup]="jobForm" (ngSubmit)="submitJob()" class="space-y-4">
-    <!-- Job Name -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Job Name</label>
-      <input type="text" formControlName="name"
-        class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" />
-      <p class="text-red-500 text-sm" *ngIf="jobForm.get('name')?.touched && jobForm.get('name')?.hasError('required')">
-        Job name is required
-      </p>
+  <form [formGroup]="jobForm" (ngSubmit)="submitJob()" class="grid grid-cols-1 gap-3">
+    <div class="w-full">
+      <input formControlName="name" required class="form-input" placeholder="Job Name">
+      @if (jobForm.get('name')?.hasError('required') && jobForm.get('name')?.touched) {
+        <div class="text-red-500 text-xs">Job name is required</div>
+      }
     </div>
 
-    <!-- Description -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Description</label>
-      <textarea formControlName="description"
-        class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"></textarea>
-      <p class="text-red-500 text-sm" *ngIf="jobForm.get('description')?.touched && jobForm.get('description')?.hasError('required')">
-        Job description is required
-      </p>
+    <div class="w-full">
+      <textarea formControlName="description" required rows="3" class="form-input" placeholder="Job Description"></textarea>
+      @if (jobForm.get('description')?.hasError('required') && jobForm.get('description')?.touched) {
+        <div class="text-red-500 text-xs">Job description is required</div>
+      }
     </div>
 
-    <!-- Category -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Category</label>
-      <app-single-select
-        [options]="categories"
-        (selected)="onCategorySelect($event)">
-      </app-single-select>
-      <p class="text-red-500 text-sm" *ngIf="jobForm.get('categoryId')?.touched && jobForm.get('categoryId')?.hasError('required')">
-        Category is required
-      </p>
+    <div class="w-full">
+      <app-single-select [options]="jobCategories" (selected)="onCategorySelect($event)" [disabled]="jobForm.disabled"></app-single-select>
+      @if (jobForm.get('categoryId')?.hasError('required') && jobForm.get('categoryId')?.touched) {
+        <div class="text-red-500 text-xs">Category is required</div>
+      }
     </div>
 
-    <!-- Pay Amount -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Pay Amount</label>
-      <input type="number" formControlName="payAmount"
-        class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" />
-      <p class="text-red-500 text-sm" *ngIf="jobForm.get('payAmount')?.touched && jobForm.get('payAmount')?.hasError('min')">
-        Pay amount must be greater than 0
-      </p>
+    <div class="w-full">
+      <div class="text-gray-500 text-xs mb-1">Pay Amount</div>
+      <div class="relative">
+        <span class="absolute left-1.5 top-[38%] transform -translate-y-1/2 font-bold text-[1rem] text-gray-500">$</span>
+        <input formControlName="payAmount" type="number" required class="form-input pl-8">
+      </div>
+      @if (jobForm.get('payAmount')?.hasError('min') && jobForm.get('payAmount')?.touched) {
+        <div class="text-red-500 text-xs">Pay amount must be greater than 0</div>
+      }
     </div>
 
-    <!-- Time To Complete -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Time to Complete (seconds)</label>
-      <input type="number" formControlName="timeToCompleteSeconds"
-        class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" />
-      <p class="text-red-500 text-sm" *ngIf="jobForm.get('timeToCompleteSeconds')?.touched && jobForm.get('timeToCompleteSeconds')?.hasError('min')">
-        Must be greater than 0 seconds
-      </p>
+    <div class="w-full">
+      <div class="text-gray-500 text-xs mb-1">Time to Complete</div>
+      <input type="date" formControlName="timeToCompleteDate" required class="form-input">
+      @if (jobForm.get('timeToCompleteDate')?.hasError('required') && jobForm.get('timeToCompleteDate')?.touched) {
+        <div class="text-red-500 text-xs">Time to complete is required</div>
+      }
     </div>
 
-    <!-- Expiry Time -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Expiry Time (seconds)</label>
-      <input type="number" formControlName="expirySeconds"
-        class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" />
-      <p class="text-red-500 text-sm" *ngIf="jobForm.get('expirySeconds')?.touched && jobForm.get('expirySeconds')?.hasError('min')">
-        Must be greater than 0 seconds
-      </p>
+    <div class="w-full">
+      <div class="text-gray-500 text-xs mb-1">Expiry Date</div>
+      <input type="date" formControlName="expiryDate" required class="form-input">
+      @if (jobForm.get('expiryDate')?.hasError('required') && jobForm.get('expiryDate')?.touched) {
+        <div class="text-red-500 text-xs">Expiry date is required</div>
+      }
     </div>
 
-    <button type="submit"
-      [disabled]="jobForm.invalid || loading"
-      class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
-      {{ loading ? 'Posting...' : 'Post Job' }}
-    </button>
+    <div class="w-full">
+      <button type="submit" [disabled]="loading || jobForm.invalid" class="btn-primary w-full">
+        {{ loading ? 'Posting...' : 'Post Job' }}
+      </button>
+    </div>
   </form>
 </div>
-

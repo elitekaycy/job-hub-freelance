@@ -4,7 +4,6 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, Validati
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../config/services/authService/auth-service.service';
 import { MultiSelectComponent } from '../../components/multiselect/multiselect.component';
-import { jobPreferenceOptions } from '../../config/data/jobs.data';
 import { VerifiableUserAttributeKey, type UpdateUserAttributesOutput } from 'aws-amplify/auth';
 import { switchMap } from 'rxjs';
 import { ApiService } from '../../config/services/apiService/api.service';

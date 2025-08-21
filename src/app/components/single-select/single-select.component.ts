@@ -1,5 +1,5 @@
-import { Component, input, output, signal } from '@angular/core';
-import { JobCategory } from '../../config/interfaces/general.interface';
+import { Component, ElementRef, HostListener, input, output, signal } from '@angular/core';
+import { Categories } from '../../config/interfaces/general.interface';
 
 @Component({
   selector: 'app-single-select',
@@ -8,21 +8,30 @@ import { JobCategory } from '../../config/interfaces/general.interface';
   templateUrl: './single-select.component.html',
 })
 export class SingleSelectComponent {
-  options = input<JobCategory[]>([]);
-  disabled= input<boolean>(false);
+  options = input<Categories[]>([]);
+  disabled = input<boolean>(false);
   selected = output<string>();
 
   isOpen = signal(false);
-  selectedOption = signal<JobCategory | null>(null);
+  selectedOption = signal<Categories | null>(null);
+
+  constructor(private readonly elementRef: ElementRef) {}
 
   toggleDropdown(event: Event) {
     event.stopPropagation();
-    this.isOpen.set(!this.isOpen());
+    if (!this.disabled()) this.isOpen.set(!this.isOpen());
   }
 
-  selectOption(option: JobCategory) {
+  selectOption(option: Categories) {
     this.selectedOption.set(option);
-    this.selected.emit(option.id);
+    this.selected.emit(option.categoryId);
     this.isOpen.set(false);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    if (this.isOpen() && !this.elementRef.nativeElement.contains(event.target)) {
+      this.isOpen.set(false);
+    }
   }
 }
