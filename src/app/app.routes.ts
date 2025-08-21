@@ -39,7 +39,7 @@ export const routes: Routes = [
     // canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: DashboardComponent },
-      // { path: 'jobs', loadComponent: () => import('./pages/jobs/jobs.component').then(m => m.JobsComponent) },
+      { path: 'jobs', loadComponent: () => import('./pages/jobs/job-board/job-board.component').then(m => m.JobBoardComponent) },
       {
         path: 'post-job',
         loadComponent: () =>

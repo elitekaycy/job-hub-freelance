@@ -50,3 +50,25 @@ export interface CategoriesResponse {
   categories:Categories[]
   count:number
 }
+
+export interface Job {
+  jobId: string;
+  ownerId: string;
+  categoryId: string;
+  categoryName?: string;
+  name: string;
+  description: string;
+  payAmount: number;
+  timeToCompleteSeconds: number;
+  expiryDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  claimerId: string | null;
+  claimedAt: string | null;
+  submissionDeadline: string | null;
+  submittedAt: string | null;
+}
+
+
+export interface User extends Omit<SignUpData, 'username' | 'password'> {};

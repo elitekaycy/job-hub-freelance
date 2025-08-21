@@ -1,0 +1,244 @@
+<!-- job-board.component.html -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-blue-700">Job Board</h1>
+    <p class="text-gray-600 mt-2">Find the perfect job opportunity from our listings</p>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Search Jobs</label>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (ngModelChange)="applyFilters()"
+          placeholder="Job title or keyword" 
+          class="form-input">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <select 
+          [(ngModel)]="selectedCategory" 
+          (ngModelChange)="applyFilters()"
+          class="form-input">
+          <option value="">All Categories</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <select 
+          [(ngModel)]="selectedStatus" 
+          (ngModelChange)="applyFilters()"
+          class="form-input">
+          <option *ngFor="let status of statusOptions" [value]="status.value">
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+        <select 
+          [(ngModel)]="selectedSort" 
+          (ngModelChange)="applyFilters()"
+          class="form-input">
+          <option *ngFor="let option of sortOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="flex justify-between items-center mt-6">
+      <p class="text-gray-600">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ currentPage * itemsPerPage > filteredJobs.length ? filteredJobs.length : currentPage * itemsPerPage }} of {{ filteredJobs.length }} jobs
+      </p>
+      <div *ngIf="currentUser?.jobPreferences?.length" class="text-sm text-blue-600">
+        <i class="fas fa-info-circle mr-1"></i>
+        Showing jobs matching your preferences
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Listings -->
+  <div class="grid grid-cols-1 gap-6 mb-8">
+    <!-- Job Card -->
+    <div *ngFor="let job of getPaginatedJobs()" class="job-card bg-white rounded-lg shadow p-6 relative">
+      <!-- Action menu (three dots) -->
+      <div class="absolute top-4 right-4">
+        <button 
+          (click)="toggleActionMenu(job.jobId)"
+          class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100">
+          <i class="fas fa-ellipsis-v"></i>
+        </button>
+        
+        <!-- Dropdown menu -->
+        <div 
+          *ngIf="showActionMenu === job.jobId"
+          class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+          <!-- Owner actions -->
+          <div *ngIf="isJobOwner(job)">
+            <button 
+              (click)="deleteJob(job)"
+              class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+              Delete Job
+            </button>
+            <a 
+              [routerLink]="['/edit-job', job.jobId]"
+              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              Edit Job
+            </a>
+            <button 
+              *ngIf="job.status === 'claimed' && job.submittedAt"
+              (click)="approveSubmission(job)"
+              class="block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-100">
+              Approve Submission
+            </button>
+            <button 
+              *ngIf="job.status === 'claimed' && job.submittedAt"
+              (click)="rejectSubmission(job)"
+              class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+              Reject Submission
+            </button>
+          </div>
+          
+          <!-- Claimer actions -->
+          <div *ngIf="isJobClaimer(job)">
+            <button 
+              (click)="submitJob(job)"
+              class="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">
+              Submit Work
+            </button>
+          </div>
+          
+          <!-- Non-owner, non-claimer actions -->
+          <div *ngIf="!isJobOwner(job) && !isJobClaimer(job)">
+            <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              Save Job
+            </button>
+            <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              Report Job
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex justify-between items-start">
+        <div>
+          <h2 class="text-xl font-bold text-blue-700">{{ job.name }}</h2>
+          <p class="text-gray-600 mt-1">{{ job.description | slice:0:100 }}{{ job.description.length > 100 ? '...' : '' }}</p>
+        </div>
+        <span class="status-badge" [ngClass]="getStatusClass(job.status)">
+          {{ job.status | titlecase }}
+        </span>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <div class="flex items-center">
+          <span class="text-gray-400 mr-2">$</span>
+          <span class="font-medium">{{ job.payAmount | number }}</span>
+        </div>
+        <div class="flex items-center">
+          <span class="text-gray-400 mr-2">⏱</span>
+          <span>Complete by: {{ getCompletionDate(job) }}</span>
+        </div>
+        <div class="flex items-center">
+          <span class="text-gray-400 mr-2">📅</span>
+          <span>Expires: {{ formatDate(job.expiryDate) }}</span>
+        </div>
+      </div>
+      
+      <div class="flex justify-between items-center mt-6">
+        <div class="flex items-center">
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+            <span class="text-blue-600">{{ getCategoryIcon(job.categoryId) }}</span>
+          </div>
+          <div>
+            <p class="text-sm font-medium">
+              {{ job.categoryName || (job.categoryId | titlecase) }}
+            </p>
+            <p class="text-xs text-gray-500">Posted {{ formatDate(job.createdAt) }}</p>
+          </div>
+        </div>
+        
+        <div class="flex space-x-2">
+          <!-- View Details button (always visible) -->
+          <button 
+            [routerLink]="['/job-details', job.jobId]"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            View Details
+          </button>
+          
+          <!-- Claim button (visible if user can claim the job) -->
+          <button 
+            *ngIf="canClaimJob(job)"
+            (click)="claimJob(job)"
+            class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+            Claim Job
+          </button>
+          
+          <!-- Submit button (visible if user is the claimer) -->
+          <button 
+            *ngIf="canSubmitJob(job)"
+            (click)="submitJob(job)"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+            Submit Work
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No jobs message -->
+  <div *ngIf="filteredJobs.length === 0" class="bg-white rounded-lg shadow p-8 text-center">
+    <p class="text-gray-600 text-lg">No jobs found matching your criteria.</p>
+    <button (click)="selectedCategory = ''; selectedStatus = ''; searchTerm = ''; applyFilters()" 
+            class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="filteredJobs.length > 0" class="bg-white rounded-lg shadow px-6 py-4 flex items-center justify-between">
+    <div>
+      <p class="text-sm text-gray-700">
+        Showing <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to 
+        <span class="font-medium">{{ currentPage * itemsPerPage > filteredJobs.length ? filteredJobs.length : currentPage * itemsPerPage }}</span> of 
+        <span class="font-medium">{{ filteredJobs.length }}</span> results
+      </p>
+    </div>
+    <div class="flex space-x-2">
+      <button 
+        (click)="changePage(currentPage - 1)" 
+        [disabled]="currentPage === 1"
+        class="pagination-btn px-3 py-1 rounded-lg border border-gray-300 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+        Previous
+      </button>
+      
+      <button 
+        *ngFor="let page of [].constructor(totalPages); let i = index" 
+        (click)="changePage(i + 1)"
+        [class.bg-blue-600]="currentPage === i + 1"
+        [class.text-white]="currentPage === i + 1"
+        [class.border-blue-600]="currentPage === i + 1"
+        class="pagination-btn px-3 py-1 rounded-lg border border-gray-300 text-gray-600">
+        {{ i + 1 }}
+      </button>
+      
+      <button 
+        (click)="changePage(currentPage + 1)" 
+        [disabled]="currentPage === totalPages"
+        class="pagination-btn px-3 py-1 rounded-lg border border-gray-300 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+        Next
+      </button>
+    </div>
+  </div>
+</div>

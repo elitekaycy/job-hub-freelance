@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Categories, CategoriesResponse } from '../../interfaces/general.interface';
+import { Categories, CategoriesResponse, Job } from '../../interfaces/general.interface';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -27,6 +27,26 @@ export class ApiService {
 
   postJob(job: any): Observable<any> {
     return this.http.post(this.apiUrl+'/job/owner/create', job);
+  }
+
+  getJobs(): Observable<any> {
+    return this.http.get(this.apiUrl+'/job/owner/list');
+  }
+
+  async claimJob(jobId: string, email: string): Promise<any> {
+    return firstValueFrom(this.http.post(`/api/jobs/${jobId}/claim`, { email }));
+  }
+
+  async rejectSubmission(jobId: string): Promise<any> {
+    return firstValueFrom(this.http.post(`/api/jobs/${jobId}/reject`, {})); // Empty body is required in this case
+  }
+
+  async approveSubmission(jobId: string): Promise<any> {
+    return firstValueFrom(this.http.post(`/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
+  } 
+
+  async deleteJob(jobId: string): Promise<any> {
+    return firstValueFrom(this.http.delete(`/api/jobs/${jobId}`)); // Empty body is required in this case
   }
 
 }
