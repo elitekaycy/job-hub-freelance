@@ -2,12 +2,6 @@ import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../../config/services/apiService/api.service';
 import { SingleSelectComponent } from '../../../components/single-select/single-select.component';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker'; // Added for datepickers
-import { MatNativeDateModule } from '@angular/material/core'; // Added for date handling
-import { CommonModule } from '@angular/common';
 import { Categories } from '../../../config/interfaces/general.interface';
 
 @Component({
@@ -16,20 +10,12 @@ import { Categories } from '../../../config/interfaces/general.interface';
   imports: [
     SingleSelectComponent,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    CommonModule
   ],
   templateUrl: './job-post.component.html',
   styles: [`
     .form-input {
       @apply w-full px-4 py-2 mb-3 border rounded border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300;
-    }
-    
-    `
+    }`
   ],
 })
 export class JobPostComponent {
@@ -46,15 +32,7 @@ export class JobPostComponent {
   jobCategories: Categories[] = [];
   errorMessage = '';
 
-  // categories = [
-  //   { id: '1', name: 'Design', description: 'Design' },
-  //   { id: '2', name: 'Development', description: 'Development' },
-  //   { id: '3', name: 'Writing', description: 'Writing' },
-  // ];
-
   constructor(private readonly fb: FormBuilder, private readonly apiService: ApiService) {}
-
-
   ngOnInit() {
     this.loadJobCategories();
   }

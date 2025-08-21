@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors, FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../config/services/authService/auth-service.service';
 import { MultiSelectComponent } from '../../components/multiselect/multiselect.component';
 import { VerifiableUserAttributeKey, type UpdateUserAttributesOutput } from 'aws-amplify/auth';
@@ -12,7 +12,7 @@ import { Categories } from '../../config/interfaces/general.interface';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, MultiSelectComponent, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MultiSelectComponent, FormsModule],
   templateUrl: './profile.component.html',
   styles: [`
     .form-input {
