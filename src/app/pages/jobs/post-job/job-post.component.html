@@ -1,5 +1,5 @@
 <div class="job-post-container">
-  <h1 class="text-2xl font-bold text-blue-700 mb-6 border-b-2 border-brand-primary pb-2 text-center">Create a New Job Listing</h1>
+  <h1 class="text-2xl font-bold text-blue-700 mb-6 pb-2 text-center">Create a New Job Listing</h1>
 
   <form [formGroup]="jobForm" (ngSubmit)="submitJob()" class="grid grid-cols-1 gap-3">
     <div class="w-full">
@@ -10,7 +10,7 @@
     </div>
 
     <div class="w-full">
-      <textarea formControlName="description" required rows="3" class="form-input" placeholder="Job Description"></textarea>
+      <textarea formControlName="description" required rows="2" class="form-input" placeholder="Job Description"></textarea>
       @if (jobForm.get('description')?.hasError('required') && jobForm.get('description')?.touched) {
         <div class="text-red-500 text-xs">Job description is required</div>
       }
@@ -24,7 +24,7 @@
     </div>
 
     <div class="w-full">
-      <div class="text-gray-500 text-xs mb-1">Pay Amount</div>
+      <div class="text-gray-600 text-xs mb-1">Pay Amount</div>
       <div class="relative">
         <span class="absolute left-1.5 top-[38%] transform -translate-y-1/2 font-bold text-[1rem] text-gray-500">$</span>
         <input formControlName="payAmount" type="number" required class="form-input pl-8">
@@ -35,7 +35,7 @@
     </div>
 
     <div class="w-full">
-      <div class="text-gray-500 text-xs mb-1">Time to Complete</div>
+      <div class="text-gray-600 text-xs mb-1">Time to Complete</div>
       <input type="date" formControlName="timeToCompleteDate" required class="form-input">
       @if (jobForm.get('timeToCompleteDate')?.hasError('required') && jobForm.get('timeToCompleteDate')?.touched) {
         <div class="text-red-500 text-xs">Time to complete is required</div>
@@ -43,7 +43,7 @@
     </div>
 
     <div class="w-full">
-      <div class="text-gray-500 text-xs mb-1">Expiry Date</div>
+      <div class="text-gray-600 text-xs mb-1">Expiry Date</div>
       <input type="date" formControlName="expiryDate" required class="form-input">
       @if (jobForm.get('expiryDate')?.hasError('required') && jobForm.get('expiryDate')?.touched) {
         <div class="text-red-500 text-xs">Expiry date is required</div>
