@@ -1,13 +1,21 @@
-import { Component, ElementRef, HostListener, input, output, signal } from '@angular/core';
+import { Component, ElementRef, forwardRef, HostListener, input, output, signal } from '@angular/core';
 import { Categories } from '../../config/interfaces/general.interface';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-single-select',
   standalone: true,
   imports: [],
   templateUrl: './single-select.component.html',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => SingleSelectComponent),
+      multi: true,
+    },
+  ],
 })
-export class SingleSelectComponent {
+export class SingleSelectComponent implements ControlValueAccessor  {
   options = input<Categories[]>([]);
   disabled = input<boolean>(false);
   selected = output<string>();
@@ -15,7 +23,29 @@ export class SingleSelectComponent {
   isOpen = signal(false);
   selectedOption = signal<Categories | null>(null);
 
+  private onChange = (value: string) => {}
+  private onTouched = () => {}
+
   constructor(private readonly elementRef: ElementRef) {}
+
+
+  writeValue(value: string): void {
+    this.selectedOption.set(
+      this.options().find((o) => o.categoryId === value) || null
+    )
+  }
+
+  registerOnChange(fn: (value: string) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+   // No-op; input() handles it
+  }
 
   toggleDropdown(event: Event) {
     event.stopPropagation();
@@ -24,6 +54,8 @@ export class SingleSelectComponent {
 
   selectOption(option: Categories) {
     this.selectedOption.set(option);
+    this.onChange(option.categoryId);  // Notify the form
+    this.onTouched();                 // Mark as touched
     this.selected.emit(option.categoryId);
     this.isOpen.set(false);
   }

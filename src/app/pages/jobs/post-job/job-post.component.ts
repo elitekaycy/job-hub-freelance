@@ -59,6 +59,10 @@ export class JobPostComponent {
     expirySeconds: this.dateToSeconds(this.jobForm.value.expiryDate   || new Date()),
   };
 
+  //Remove timeToCompleteDate and expiryDate from payload
+  delete payload.timeToCompleteDate;
+  delete payload.expiryDate;
+
   this.apiService.postJob(payload).subscribe({
     next: (response) => {
       // Assuming response contains timeToCompleteSeconds and expirySeconds
@@ -68,6 +72,8 @@ export class JobPostComponent {
       });
       alert('Job posted successfully!');
       this.jobForm.reset();
+      // reset select field on jobForm
+      this.jobForm.patchValue({ categoryId: '' });
       this.loading = false;
     },
     error: (err) => {
@@ -79,11 +85,15 @@ export class JobPostComponent {
 
   // Convert Date to seconds since epoch
   private dateToSeconds(date: Date | null): number {
-    return date ? Math.floor(date.getTime() / 1000) : 0;
+    if (!date) return 0;
+    const duration = typeof date === 'string' ? new Date(date) : date;
+    return date ? Math.floor(duration.getTime() / 1000) : 0;
   }
 
   // Convert seconds to Date (for future backend response handling)
   private secondsToDate(seconds: number): Date {
-    return new Date(seconds * 1000);
+    if (!seconds) return new Date();
+    const duration= typeof seconds === 'string' ? Number(seconds) : seconds;
+    return new Date(duration * 1000);
   }
 }

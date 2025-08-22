@@ -110,7 +110,7 @@ export class JobBoardComponent implements OnInit {
   async loadCurrentUser() {
     try {
        await firstValueFrom(this.authService.getUserAttributes())
-        .then((attributes: any) => {
+        .then((attributes: User) => {
           this.currentUser = attributes;
         });
     } catch (error) {
@@ -121,7 +121,8 @@ export class JobBoardComponent implements OnInit {
   async loadJobs() {
     try {
       // Get jobs with category names included
-      await firstValueFrom(this.apiService.getJobs()).then((jobs: any) => {
+      await firstValueFrom(this.apiService.getJobs()).then((jobs: Job[]) => {
+        console.log('Loaded jobs:', jobs);
         this.jobs = jobs;
       });
       
