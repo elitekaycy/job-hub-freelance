@@ -1,17 +1,18 @@
-<!-- job-board.component.html -->
+<!-- job-seekers-board.component.html -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <!-- Header -->
   <div class="mb-8">
-    <h1 class="text-3xl font-bold text-blue-700">Job Board</h1>
-    <p class="text-gray-600 mt-2">Find the perfect job opportunity from our listings</p>
+    <h1 class="text-3xl font-bold text-blue-700">Job Seekers Board</h1>
+    <p class="text-gray-600 mt-2">Find jobs that match your skills and preferences</p>
   </div>
 
   <!-- Filters and Search -->
   <div class="bg-white rounded-lg shadow p-6 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Search Jobs</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="search">Search Jobs</label>
         <input 
+          id="search"
           type="text" 
           [(ngModel)]="searchTerm" 
           (ngModelChange)="applyFilters()"
@@ -20,21 +21,23 @@
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="category">Category</label>
         <select 
+          id="category"
           [(ngModel)]="selectedCategory" 
           (ngModelChange)="applyFilters()"
           class="form-input">
           <option value="">All Categories</option>
-          <option *ngFor="let category of categories" [value]="category.id">
+          <option *ngFor="let category of categories()" [value]="category.categoryId">
             {{ category.name }}
           </option>
         </select>
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="status">Status</label>
         <select 
+          id="status"
           [(ngModel)]="selectedStatus" 
           (ngModelChange)="applyFilters()"
           class="form-input">
@@ -45,8 +48,9 @@
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="sort">Sort By</label>
         <select 
+          id="sort"
           [(ngModel)]="selectedSort" 
           (ngModelChange)="applyFilters()"
           class="form-input">
@@ -62,8 +66,8 @@
         Showing {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ currentPage * itemsPerPage > filteredJobs.length ? filteredJobs.length : currentPage * itemsPerPage }} of {{ filteredJobs.length }} jobs
       </p>
       <div *ngIf="currentUser?.jobPreferences?.length" class="text-sm text-blue-600">
-        <i class="fas fa-info-circle mr-1"></i>
-        Showing jobs matching your preferences
+        <span class="font-medium">Your preferences:</span> 
+        {{ currentUser?.jobPreferences?.join(', ') }}
       </div>
     </div>
   </div>
@@ -71,66 +75,7 @@
   <!-- Job Listings -->
   <div class="grid grid-cols-1 gap-6 mb-8">
     <!-- Job Card -->
-    <div *ngFor="let job of getPaginatedJobs()" class="job-card bg-white rounded-lg shadow p-6 relative">
-      <!-- Action menu (three dots) -->
-      <div class="absolute top-4 right-4">
-        <button 
-          (click)="toggleActionMenu(job.jobId)"
-          class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        
-        <!-- Dropdown menu -->
-        <div 
-          *ngIf="showActionMenu === job.jobId"
-          class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
-          <!-- Owner actions -->
-          <div *ngIf="isJobOwner(job)">
-            <button 
-              (click)="deleteJob(job)"
-              class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-              Delete Job
-            </button>
-            <a 
-              [routerLink]="['/edit-job', job.jobId]"
-              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-              Edit Job
-            </a>
-            <button 
-              *ngIf="job.status === 'claimed' && job.submittedAt"
-              (click)="approveSubmission(job)"
-              class="block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-100">
-              Approve Submission
-            </button>
-            <button 
-              *ngIf="job.status === 'claimed' && job.submittedAt"
-              (click)="rejectSubmission(job)"
-              class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-              Reject Submission
-            </button>
-          </div>
-          
-          <!-- Claimer actions -->
-          <!-- <div *ngIf="isJobClaimer(job)">
-            <button 
-              (click)="submitJob(job)"
-              class="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">
-              Submit Work
-            </button>
-          </div> -->
-          
-          <!-- Non-owner, non-claimer actions -->
-          <div *ngIf="!isJobOwner(job) && !isJobClaimer(job)">
-            <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-              Save Job
-            </button>
-            <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-              Report Job
-            </button>
-          </div>
-        </div>
-      </div>
-      
+    <div *ngFor="let job of getPaginatedJobs()" class="job-card bg-white rounded-lg shadow p-6">
       <div class="flex justify-between items-start">
         <div>
           <h2 class="text-xl font-bold text-blue-700">{{ job.name }}</h2>
@@ -163,35 +108,40 @@
           </div>
           <div>
             <p class="text-sm font-medium">
-              {{ job.categoryName || (job.categoryId | titlecase) }}
+              {{ getJobCategoryName(job.categoryId) | titlecase }}
             </p>
             <p class="text-xs text-gray-500">Posted {{ formatDate(job.createdAt) }}</p>
           </div>
         </div>
         
         <div class="flex space-x-2">
-          <!-- View Details button (always visible) -->
+          <!-- Claim/Unclaim button -->
           <button 
-            [routerLink]="['/job-details', job.jobId]"
+            *ngIf="canClaimJob(job)"
+            (click)="openClaimModal(job)"
             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-            View Details
+            Claim Job
           </button>
           
-          <!-- Claim button (visible if user can claim the job) -->
           <!-- <button 
-            *ngIf="canClaimJob(job)"
-            (click)="claimJob(job)"
-            class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
-            Claim Job
+            *ngIf="canUnclaimJob(job)"
+            (click)="unclaimJob(job)"
+            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+            Unclaim Job
           </button> -->
           
-          <!-- Submit button (visible if user is the claimer) -->
-          <!-- <button 
+          <!-- Submit button -->
+          <button 
             *ngIf="canSubmitJob(job)"
-            (click)="submitJob(job)"
+            (click)="openSubmitModal(job)"
             class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
             Submit Work
-          </button> -->
+          </button>
+          
+          <!-- View Details button -->
+          <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+            View Details
+          </button>
         </div>
       </div>
     </div>
@@ -239,6 +189,54 @@
         class="pagination-btn px-3 py-1 rounded-lg border border-gray-300 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
         Next
       </button>
+    </div>
+  </div>
+
+  <!-- Claim Job Modal -->
+  <div *ngIf="showClaimModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal">
+      <h3 class="text-xl font-bold text-blue-700 mb-4">Claim Job</h3>
+      <p class="text-gray-600 mb-6">Are you sure you want to claim "{{ selectedJob?.name }}"?</p>
+      
+      <div class="flex justify-end space-x-3">
+        <button 
+          (click)="closeClaimModal()"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+          Cancel
+        </button>
+        <button 
+          (click)="claimJob()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+          {{ loading ? 'Claiming...' : 'Confirm Claim'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Job Modal -->
+  <div *ngIf="showSubmitModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal">
+      <h3 class="text-xl font-bold text-blue-700 mb-4">Submit Work</h3>
+      <p class="text-gray-600 mb-2">Please provide details of the work you've completed for "{{ selectedJob?.name }}":</p>
+      
+      <textarea 
+        [(ngModel)]="submissionDetails"
+        rows="5"
+        placeholder="Describe the work you've completed..."
+        class="form-input w-full mt-3"></textarea>
+      
+      <div class="flex justify-end space-x-3 mt-6">
+        <button 
+          (click)="closeSubmitModal()"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+          Cancel
+        </button>
+        <button 
+          (click)="submitJob()"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+          {{loading ? "Submitting..." : "Submit Work"}}
+        </button>
+      </div>
     </div>
   </div>
 </div>

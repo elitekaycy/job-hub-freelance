@@ -33,20 +33,32 @@ export class ApiService {
     return this.http.get(this.apiUrl+'/job/owner/list');
   }
 
-  async claimJob(jobId: string, email: string): Promise<any> {
-    return firstValueFrom(this.http.post(`/api/jobs/${jobId}/claim`, { email }));
+  // async unclaimJob(jobId: string, seekerId: string): Promise<any> {
+  //   return await firstValueFrom(this.http.post(`/api/jobs/${jobId}/unclaim`, {seekerId}));
+  // }
+
+  async submitJob(jobId: string): Promise<any> {
+    return await firstValueFrom(this.http.post(`/job/seeker/submit`, {jobId}));
+  }
+
+  async getSeekerJobs(): Promise<any> {
+    return await firstValueFrom(this.http.get(this.apiUrl+'/job/seeker/list?type=all'));
+  }
+
+  async claimJob(jobId: string): Promise<any> {
+    return await firstValueFrom(this.http.post(this.apiUrl+'/job/seeker/claim/'+jobId, {}));
   }
 
   async rejectSubmission(jobId: string): Promise<any> {
-    return firstValueFrom(this.http.post(`/api/jobs/${jobId}/reject`, {})); // Empty body is required in this case
+    return await firstValueFrom(this.http.post(`/api/jobs/${jobId}/reject`, {})); // Empty body is required in this case
   }
 
   async approveSubmission(jobId: string): Promise<any> {
-    return firstValueFrom(this.http.post(`/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
+    return await firstValueFrom(this.http.post(`/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
   } 
 
   async deleteJob(jobId: string): Promise<any> {
-    return firstValueFrom(this.http.delete(`/api/jobs/${jobId}`)); // Empty body is required in this case
+    return await firstValueFrom(this.http.delete(`/api/jobs/${jobId}`)); // Empty body is required in this case
   }
 
 }

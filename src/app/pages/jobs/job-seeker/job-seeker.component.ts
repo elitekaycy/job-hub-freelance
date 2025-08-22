@@ -1,21 +1,17 @@
-// job-board.component.ts
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { ApiService } from '../../../config/services/apiService/api.service';
 import { AuthService } from '../../../config/services/authService/auth-service.service';
-import { Job, User } from '../../../config/interfaces/general.interface';
-import { firstValueFrom } from 'rxjs';
+import { Categories, Job, User } from '../../../config/interfaces/general.interface';
 import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
-
-
+import { firstValueFrom } from 'rxjs';
 
 @Component({
-  selector: 'app-job-board',
+  selector: 'app-job-seekers-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './job-board.component.html',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './job-seeker.component.html',
   styles: [`
     .job-card {
       transition: all 0.3s ease;
@@ -47,19 +43,16 @@ import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
       @apply w-full px-4 py-2 mb-3 border rounded border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300;
     }
     
-    .action-menu {
-      transition: all 0.3s ease;
-      opacity: 0;
-      transform: translateY(-10px);
+    .modal-backdrop {
+      background-color: rgba(0, 0, 0, 0.5);
     }
     
-    .job-card:hover .action-menu {
-      opacity: 1;
-      transform: translateY(0);
+    .modal {
+      transition: all 0.3s ease-out;
     }
   `]
 })
-export class JobBoardComponent implements OnInit {
+export class JobSeekersBoardComponent implements OnInit {
   jobs: Job[] = [];
   filteredJobs: Job[] = [];
   currentPage = 1;
@@ -71,17 +64,18 @@ export class JobBoardComponent implements OnInit {
   selectedSort = 'newest';
   
   currentUser: User | null = null;
-  showActionMenu: string | null = null;
-  statusOptions = signal(statusOptions);
-  sortOptions = signal(sortOptions);
-  
-  categories = [
-    { id: 'design', name: 'Design & Creative' },
-    { id: 'development', name: 'Development & IT' },
-    { id: 'marketing', name: 'Marketing' },
-    { id: 'writing', name: 'Writing' }
-  ];
+  showClaimModal = false;
+  showSubmitModal = false;
+  selectedJob: Job | null = null;
+  submissionDetails = '';
+  jobSeekerId= '';
 
+  statusOptions = signal(statusOptions)
+  sortOptions = signal(sortOptions)
+  categories = signal<Categories[]>([]);
+  
+  errorMessage = '';
+  loading = false;
 
 
   constructor(
@@ -89,41 +83,45 @@ export class JobBoardComponent implements OnInit {
     private readonly authService: AuthService
   ) {}
 
-  ngOnInit() {
-    this.init();
-  }
+   ngOnInit() {
+      this.init();
+    }
 
-  private async init() {
+  async init() {
+    await this.loadJobCategories();
     await this.loadCurrentUser();
     await this.loadJobs();
   }
 
   async loadCurrentUser() {
     try {
-       await firstValueFrom(this.authService.getUserAttributes())
-        .then((attributes: User) => {
-          this.currentUser = attributes;
-        });
+      this.currentUser = await firstValueFrom(this.authService.getUserAttributes()) ;
     } catch (error) {
       console.error('Failed to load user data:', error);
     }
   }
 
+  async loadJobCategories(){
+      try {
+      const jobPreferences= await this.apiService.getCategories()
+      this.categories.set(jobPreferences);  
+    }catch(err){
+      this.errorMessage = 'Failed to load categories.';
+      console.log(err);
+    } 
+  }
+
   async loadJobs() {
     try {
-      // Get jobs with category names included
-      await firstValueFrom(this.apiService.getJobs()).then((jobs: Job[]) => {
-        console.log('Loaded jobs:', jobs);
-        this.jobs = jobs;
-      });
-      
-      // If the current user has preferred categories, filter by them
-      if (this.currentUser?.jobPreferences?.length) {
-        this.selectedCategory = this.currentUser.jobPreferences[0];
-      }
-      
+      this.loading = true;
+      const seekerJobs = await this.apiService.getSeekerJobs();
+      console.log('Loaded jobs:', seekerJobs);
+      this.loading = false;
+      this.jobSeekerId = seekerJobs.seekerId;  
+      this.jobs = seekerJobs.jobs;
       this.applyFilters();
     } catch (error) {
+      this.loading = false;
       console.error('Failed to load jobs:', error);
     }
   }
@@ -141,7 +139,7 @@ export class JobBoardComponent implements OnInit {
         job.categoryId === this.selectedCategory
       );
     }
-
+    
     // Apply status filter
     if (this.selectedStatus) {
       this.filteredJobs = this.filteredJobs.filter(job => 
@@ -168,7 +166,7 @@ export class JobBoardComponent implements OnInit {
 
     // Calculate pagination
     this.totalPages = Math.ceil(this.filteredJobs.length / this.itemsPerPage);
-    this.currentPage = 1; // Reset to first page when filters change
+    this.currentPage = 1;
   }
 
   getPaginatedJobs() {
@@ -184,13 +182,13 @@ export class JobBoardComponent implements OnInit {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'active':
+      case 'open':
         return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
       case 'claimed':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'submitted':
+        return 'bg-blue-100 text-blue-800';
+      case 'approved':
         return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -221,85 +219,94 @@ export class JobBoardComponent implements OnInit {
     });
   }
 
+  getJobCategoryName(categoryId: string): string {
+    const category = this.categories().filter(category => category.categoryId === categoryId)[0];
+    return category ? category.name : '';
+  }
+
   getCompletionDate(job: Job): string {
     const createdDate = new Date(job.createdAt);
     const completionDate = new Date(createdDate.getTime() + (job.timeToCompleteSeconds * 1000));
     return this.formatDate(completionDate.toISOString());
   }
 
-  isJobOwner(job: Job): boolean {
-    return this.currentUser?.email === job.ownerId;
-  }
-
-  isJobClaimer(job: Job): boolean {
-    return this.currentUser?.email === job.claimerId;
+  isJobClaimedByUser(job: Job): boolean {
+    return job.claimerId === this.jobSeekerId;
   }
 
   canClaimJob(job: Job): boolean {
-    return !this.isJobOwner(job) && 
-           job.status === 'active' && 
-           !job.claimerId &&
-           new Date(job.expiryDate) > new Date();
+    return (job.status === 'open'  && new Date(job.expiryDate) > new Date());
+  }
+
+  canUnclaimJob(job: Job): boolean {
+    return this.isJobClaimedByUser(job) && job.status === 'claimed';
   }
 
   canSubmitJob(job: Job): boolean {
-    return this.isJobClaimer(job) && 
-           job.status === 'claimed' && 
-           (!job.submissionDeadline || new Date(job.submissionDeadline) > new Date());
+    return this.isJobClaimedByUser(job) && job.status === 'claimed';
   }
 
-  toggleActionMenu(jobId: string) {
-    this.showActionMenu = this.showActionMenu === jobId ? null : jobId;
+  openClaimModal(job: Job) {
+    this.selectedJob = job;
+    this.showClaimModal = true;
   }
 
-  // async claimJob(job: Job) {
-  //   try {
-  //     await this.apiService.claimJob(job.jobId);
-  //     alert('Job claimed successfully!');
-  //     this.loadJobs(); // Reload jobs to update the UI
-  //   } catch (error) {
-  //     console.error('Failed to claim job:', error);
-  //     alert('Failed to claim job. Please try again.');
-  //   }
-  // }
+  closeClaimModal() {
+    this.showClaimModal = false;
+    this.selectedJob = null;
+  }
 
-  async deleteJob(job: Job) {
-    if (confirm('Are you sure you want to delete this job?')) {
-      try {
-        await this.apiService.deleteJob(job.jobId);
-        alert('Job deleted successfully!');
-        this.loadJobs(); // Reload jobs to update the UI
-      } catch (error) {
-        console.error('Failed to delete job:', error);
-        alert('Failed to delete job. Please try again.');
+  openSubmitModal(job: Job) {
+    this.selectedJob = job;
+    this.submissionDetails = '';
+    this.showSubmitModal = true;
+  }
+
+  closeSubmitModal() {
+    this.showSubmitModal = false;
+    this.selectedJob = null;
+    this.submissionDetails = '';
+  }
+
+  async claimJob() {
+    if (!this.selectedJob) return;
+    try {
+      this.loading=true
+      const response = await this.apiService.claimJob(this.selectedJob.jobId);
+      if (response) {
+        alert('Job claimed successfully!');
+        this.closeClaimModal();
+        this.loadJobs(); // Refresh the job list
       }
+      this.loading=false
+    } catch (error) {
+      this.loading=false
+      console.error('Failed to claim job:', error);
+      alert('Failed to claim job. Please try again.');
     }
   }
 
-  // async submitJob(job: Job) {
-  //   // This would typically open a modal or navigate to a submission page
-  //   alert('Redirecting to job submission page...');
-  // }
-
-  async approveSubmission(job: Job) {
-    try {
-      await this.apiService.approveSubmission(job.jobId);
-      alert('Submission approved successfully!');
-      this.loadJobs(); // Reload jobs to update the UI
-    } catch (error) {
-      console.error('Failed to approve submission:', error);
-      alert('Failed to approve submission. Please try again.');
+  async submitJob() {
+    if (!this.selectedJob || !this.submissionDetails.trim()) {
+      alert('Please provide submission details.');
+      return;
     }
-  }
 
-  async rejectSubmission(job: Job) {
     try {
-      await this.apiService.rejectSubmission(job.jobId);
-      alert('Submission rejected successfully!');
-      this.loadJobs(); // Reload jobs to update the UI
+      const response = await this.apiService.submitJob(
+        this.selectedJob.jobId, 
+      );
+      
+      if (response.success) {
+        alert('Job submitted successfully!');
+        this.closeSubmitModal();
+        this.loadJobs(); // Refresh the job list
+      } else {
+        alert('Failed to submit job: ' + response.message);
+      }
     } catch (error) {
-      console.error('Failed to reject submission:', error);
-      alert('Failed to reject submission. Please try again.');
+      console.error('Failed to submit job:', error);
+      alert('Failed to submit job. Please try again.');
     }
   }
 }
