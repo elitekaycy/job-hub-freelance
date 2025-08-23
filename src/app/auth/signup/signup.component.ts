@@ -8,6 +8,7 @@ import { MultiSelectComponent } from '../../components/multiselect/multiselect.c
 import { BackdropComponent } from '../../pages/layout/backdrop/backdrop.component'; 
 import { Categories } from '../../config/interfaces/general.interface';
 import { intlPhoneValidator } from '../../utils/utils';
+import { ToastService } from '../../config/services/toast/toast.service';
 
 
 @Component({
@@ -45,13 +46,14 @@ export class SignupComponent {
     jobPreferences: [[] as string[]] // Add this new field
   },{ validators: this.passwordMatchValidator });
 
-  constructor(private readonly fb: FormBuilder, private readonly router: Router) {}
+  constructor(private readonly fb: FormBuilder, private readonly router: Router, private readonly toastService: ToastService) {}
   async ngOnInit() {
     try {
       const jobPreferences= await this.apiService.getCategories()
       this.jobPreferenceOptions = jobPreferences;  
     }catch(err){
-      this.errorMessage = 'Failed to load categories.';
+      // this.errorMessage = 'Failed to load categories.';
+      this.toastService.error('Failed to load categories.');
       console.log(err);
     }
   }
@@ -64,7 +66,6 @@ export class SignupComponent {
   }
 
   onSubmit() {
-    console.log(this.form.value,this.form.valid,"status",this.form.errors);
     if (this.form.valid) {
       this.loading = true;
       const { firstName, middleName, lastName, email,phoneNumber, password, jobPreferences } = this.form.value;

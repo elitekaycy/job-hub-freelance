@@ -2,7 +2,11 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <!-- Header -->
   <div class="mb-8">
-    <h1 class="text-3xl font-bold text-blue-700">Job Seekers Board</h1>
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-bold text-blue-700">Job Seekers Board</h1>
+      <p *ngIf="loading" class="text-center text-2xl mr-8 text-blue-600" >Loading...</p>      
+    </div>
+
     <p class="text-gray-600 mt-2">Find jobs that match your skills and preferences</p>
   </div>
 

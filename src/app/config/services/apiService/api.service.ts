@@ -38,7 +38,7 @@ export class ApiService {
   // }
 
   async submitJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.post(`/job/seeker/submit`, {jobId}));
+    return await firstValueFrom(this.http.post(this.apiUrl+`/job/seeker/submit/`+jobId, {}));
   }
 
   async getSeekerJobs(): Promise<any> {
@@ -50,15 +50,15 @@ export class ApiService {
   }
 
   async rejectSubmission(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.post(`/api/jobs/${jobId}/reject`, {})); // Empty body is required in this case
+    return await firstValueFrom(this.http.post(this.apiUrl+`/api/jobs/${jobId}/reject`, {})); // Empty body is required in this case
   }
 
   async approveSubmission(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.post(`/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
+    return await firstValueFrom(this.http.post(this.apiUrl+`/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
   } 
 
   async deleteJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.delete(`/api/jobs/${jobId}`)); // Empty body is required in this case
+    return await firstValueFrom(this.http.delete(this.apiUrl+`/api/jobs/${jobId}`)); // Empty body is required in this case
   }
 
 }

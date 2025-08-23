@@ -105,6 +105,7 @@ export class JobSeekersBoardComponent implements OnInit {
 
   async loadJobCategories(){
       try {
+      this.loading=true;
       const jobPreferences= await this.apiService.getCategories()
       this.categories.set(jobPreferences);  
     }catch(err){
@@ -292,16 +293,17 @@ export class JobSeekersBoardComponent implements OnInit {
     }
 
     try {
-      const response = await this.apiService.submitJob(
-        this.selectedJob.jobId, 
-      );
+      this.loading = true;
+      const response = await this.apiService.submitJob(this.selectedJob.jobId);
       
       if (response.message) {
         this.toastService.success('Job submitted successfully!');
+        this.loading = false;
         this.closeSubmitModal();
         this.loadJobs(); // Refresh the job list
       }
     } catch (error) {
+      this.loading
       console.error('Failed to submit job:', error);
       this.toastService.error('Failed to submit job. Please try again.');
     }

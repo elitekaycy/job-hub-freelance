@@ -48,7 +48,7 @@ export class SigninComponent {
       this.authService.signIn({email: email!, password: password!}).subscribe({
         next: (result) => {
           this.loading = false;
-          console.log('Sign in result:', result);
+          // console.log('Sign in result:', result);
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
           this.router.navigate([returnUrl]);
         },
