@@ -1,3 +1,5 @@
+import { TemplateRef } from "@angular/core";
+
 export interface JobPreference {
   id: string;
   name: string;
@@ -72,3 +74,10 @@ export interface Job {
 
 
 export interface User extends Omit<SignUpData, 'username' | 'password'> {};
+
+export interface Toast {
+  template?: TemplateRef<any>;
+  text?: string;
+  classname?: string;
+  delay?: number;
+}

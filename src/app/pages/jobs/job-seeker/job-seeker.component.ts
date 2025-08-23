@@ -6,6 +6,7 @@ import { AuthService } from '../../../config/services/authService/auth-service.s
 import { Categories, Job, User } from '../../../config/interfaces/general.interface';
 import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
 import { firstValueFrom } from 'rxjs';
+import { ToastService } from '../../../config/services/toast/toast.service';
 
 @Component({
   selector: 'app-job-seekers-board',
@@ -80,7 +81,8 @@ export class JobSeekersBoardComponent implements OnInit {
 
   constructor(
     private readonly apiService: ApiService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly toastService: ToastService 
   ) {}
 
    ngOnInit() {
@@ -123,6 +125,7 @@ export class JobSeekersBoardComponent implements OnInit {
     } catch (error) {
       this.loading = false;
       console.error('Failed to load jobs:', error);
+      this.toastService.error('Failed to load jobs. Please try again.');
     }
   }
 
@@ -238,10 +241,6 @@ export class JobSeekersBoardComponent implements OnInit {
     return (job.status === 'open'  && new Date(job.expiryDate) > new Date());
   }
 
-  canUnclaimJob(job: Job): boolean {
-    return this.isJobClaimedByUser(job) && job.status === 'claimed';
-  }
-
   canSubmitJob(job: Job): boolean {
     return this.isJobClaimedByUser(job) && job.status === 'claimed';
   }
@@ -274,7 +273,7 @@ export class JobSeekersBoardComponent implements OnInit {
       this.loading=true
       const response = await this.apiService.claimJob(this.selectedJob.jobId);
       if (response) {
-        alert('Job claimed successfully!');
+        this.toastService.success('Job claimed successfully!', 5000); 
         this.closeClaimModal();
         this.loadJobs(); // Refresh the job list
       }
@@ -282,13 +281,13 @@ export class JobSeekersBoardComponent implements OnInit {
     } catch (error) {
       this.loading=false
       console.error('Failed to claim job:', error);
-      alert('Failed to claim job. Please try again.');
+      this.toastService.error('Failed to claim job: ' + error, 5000);
     }
   }
 
   async submitJob() {
     if (!this.selectedJob || !this.submissionDetails.trim()) {
-      alert('Please provide submission details.');
+      this.toastService.error('Please provide submission details.');
       return;
     }
 
@@ -297,16 +296,14 @@ export class JobSeekersBoardComponent implements OnInit {
         this.selectedJob.jobId, 
       );
       
-      if (response.success) {
-        alert('Job submitted successfully!');
+      if (response.message) {
+        this.toastService.success('Job submitted successfully!');
         this.closeSubmitModal();
         this.loadJobs(); // Refresh the job list
-      } else {
-        alert('Failed to submit job: ' + response.message);
       }
     } catch (error) {
       console.error('Failed to submit job:', error);
-      alert('Failed to submit job. Please try again.');
+      this.toastService.error('Failed to submit job. Please try again.');
     }
   }
 }
