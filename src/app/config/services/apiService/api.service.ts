@@ -29,8 +29,13 @@ export class ApiService {
     return this.http.post(this.apiUrl+'/job/owner/create', job);
   }
 
-  getJobs(): Observable<any> {
-    return this.http.get(this.apiUrl+'/job/owner/list?type=all');
+  getOwnerJobs(params: ListParams): Observable<any> {
+    let urlParams = `/job/owner/list?type=all&offset=${params.offset}&limit=${params.limit}&sortBy=${params.sort}`;
+    if (params.search) urlParams += `&search=${params.search}`;
+    if (params.category) urlParams += `&category=${params.category}`;
+    if (params.status) urlParams += `&status=${params.status}`;
+    
+    return this.http.get(this.apiUrl+ urlParams);
   }
 
   async submitJob(jobId: string): Promise<any> {
@@ -50,11 +55,11 @@ export class ApiService {
     return await firstValueFrom(this.http.post(this.apiUrl+'/job/seeker/claim/'+jobId, {}));
   }
 
-  async rejectSubmission(jobId: string): Promise<any> {
+  async rejectJob(jobId: string): Promise<any> {
     return await firstValueFrom(this.http.post(this.apiUrl+`/api/jobs/${jobId}/reject`, {})); // Empty body is required in this case
   }
 
-  async approveSubmission(jobId: string): Promise<any> {
+  async approveJob(jobId: string): Promise<any> {
     return await firstValueFrom(this.http.post(this.apiUrl+`/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
   } 
 

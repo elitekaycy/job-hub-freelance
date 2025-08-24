@@ -17,6 +17,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 })
 export class SingleSelectComponent implements ControlValueAccessor  {
   options = input<Categories[]>([]);
+  selectedValue = input<string|null>('');
   disabled = input<boolean>(false);
   selected = output<string>();
 
@@ -27,6 +28,12 @@ export class SingleSelectComponent implements ControlValueAccessor  {
   private onTouched = () => {}
 
   constructor(private readonly elementRef: ElementRef) {}
+
+  ngOnInit() {
+    this.selectedOption.set(
+      this.options().find((o) => o.categoryId === this.selectedValue()) || null
+    )
+  }
 
 
   writeValue(value: string): void {

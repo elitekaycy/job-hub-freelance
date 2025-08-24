@@ -1,5 +1,8 @@
+<!-- job-post.component.html -->
 <div class="job-post-container">
-  <h1 class="text-2xl font-bold text-blue-700 mb-6 pb-2 text-center">Create a New Job Listing</h1>
+  <h1 class="text-2xl font-bold text-blue-700 mb-6 pb-2 text-center">
+    {{ job() ? 'Edit Job' : 'Create a New Job Listing' }}
+  </h1>
 
   <form [formGroup]="jobForm" (ngSubmit)="submitJob()" class="grid grid-cols-1 gap-3">
     <div class="w-full">
@@ -17,7 +20,12 @@
     </div>
 
     <div class="w-full">
-      <app-single-select [options]="jobCategories" (selected)="onCategorySelect($event)" [disabled]="jobForm.disabled"></app-single-select>
+      <app-single-select 
+        [options]="jobCategories" 
+        [selectedValue]="jobForm.value.categoryId??null"
+        (selected)="onCategorySelect($event)" 
+        [disabled]="jobForm.disabled">
+      </app-single-select>
       @if (jobForm.get('categoryId')?.hasError('required') && jobForm.get('categoryId')?.touched) {
         <div class="text-red-500 text-xs">Category is required</div>
       }
@@ -36,7 +44,12 @@
 
     <div class="w-full">
       <div class="text-gray-600 text-xs mb-1">Time to Complete</div>
-      <input type="date" formControlName="timeToCompleteDate" required class="form-input">
+      <input 
+        type="date" 
+        formControlName="timeToCompleteDate" 
+        required 
+        class="form-input"
+        [min]="today()">
       @if (jobForm.get('timeToCompleteDate')?.hasError('required') && jobForm.get('timeToCompleteDate')?.touched) {
         <div class="text-red-500 text-xs">Time to complete is required</div>
       }
@@ -44,15 +57,29 @@
 
     <div class="w-full">
       <div class="text-gray-600 text-xs mb-1">Expiry Date</div>
-      <input type="date" formControlName="expiryDate" required class="form-input">
+      <input 
+        type="date" 
+        formControlName="expiryDate" 
+        required 
+        class="form-input"
+        [min]="today()">
       @if (jobForm.get('expiryDate')?.hasError('required') && jobForm.get('expiryDate')?.touched) {
         <div class="text-red-500 text-xs">Expiry date is required</div>
       }
     </div>
 
-    <div class="w-full">
-      <button type="submit" [disabled]="loading || jobForm.invalid" class="btn-primary w-full">
-        {{ loading ? 'Posting...' : 'Post Job' }}
+    <div class="w-full flex space-x-3">
+      <button 
+        type="button"
+        (click)="cancel()"
+        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition w-1/2">
+        Cancel
+      </button>
+      <button 
+        type="submit" 
+        [disabled]="loading || jobForm.invalid" 
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition w-1/2 disabled:opacity-50">
+        {{ loading ? (job() ? 'Updating...' : 'Posting...') : (job() ? 'Update Job' : 'Post Job') }}
       </button>
     </div>
   </form>

@@ -1,31 +1,38 @@
-// job-board.component.ts
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, HostListener, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { ApiService } from '../../../config/services/apiService/api.service';
 import { AuthService } from '../../../config/services/authService/auth-service.service';
-import { Job, User } from '../../../config/interfaces/general.interface';
-import { firstValueFrom } from 'rxjs';
+import { Categories, Job, ListParams, User } from '../../../config/interfaces/general.interface';
 import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
+import { firstValueFrom } from 'rxjs';
+import { ToastService } from '../../../config/services/toast/toast.service';
+import { JobPostComponent } from '../post-job/job-post.component';
 
-
+export type JobBoardMode = 'jobSeeker' | 'jobOwner';
 
 @Component({
   selector: 'app-job-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, JobPostComponent],
   templateUrl: './job-board.component.html',
   styles: [`
     .job-card {
       transition: all 0.3s ease;
       border-left: 4px solid transparent;
+      cursor: pointer;
     }
     
-    .job-card:hover {
+    .job-card:hover, .job-card:focus {
       transform: translateY(-2px);
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       border-left-color: #3b82f6;
+      outline: none;
+    }
+
+    .job-card.focused {
+      border: 2px solid #3b82f6;
+      transform: scale(1.02);
     }
     
     .pagination-btn {
@@ -47,151 +54,168 @@ import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
       @apply w-full px-4 py-2 mb-3 border rounded border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300;
     }
     
-    .action-menu {
-      transition: all 0.3s ease;
-      opacity: 0;
-      transform: translateY(-10px);
+    .modal-backdrop {
+      background-color: rgba(0, 0, 0, 0.5);
     }
     
-    .job-card:hover .action-menu {
-      opacity: 1;
-      transform: translateY(0);
+    .modal {
+      transition: all 0.3s ease-out;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .description-clamp {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .action-btn {
+      @apply px-2 py-1 rounded text-xs transition;
     }
   `]
 })
 export class JobBoardComponent implements OnInit {
+  mode = input<JobBoardMode>("jobSeeker");
+  
   jobs: Job[] = [];
-  filteredJobs: Job[] = [];
   currentPage = 1;
-  itemsPerPage = 10;
+  itemsPerPage = 9;
   totalPages = 1;
+  totalJobs = 0;
+  hasMore = false;
   searchTerm = '';
   selectedCategory = '';
   selectedStatus = '';
-  selectedSort = 'newest';
+  selectedSort = 'createdAt';
   
   currentUser: User | null = null;
-  showActionMenu: string | null = null;
-  statusOptions = signal(statusOptions);
-  sortOptions = signal(sortOptions);
+  showClaimModal = false;
+  showSubmitModal = false;
+  showDetailsModal = false;
+  showPostJobModal = false;
+  showRejectModal = false;
+  selectedJob: Job | null = null;
+  submissionDetails = '';
+  rejectReason = '';
+  jobSeekerId= '';
+  jobOwnerId= '';
+  focusedJobId: string | null = null;
+
+  statusOptions = signal(statusOptions)
+  sortOptions = signal(sortOptions)
+  categories = signal<Categories[]>([]);
   
-  categories = [
-    { id: 'design', name: 'Design & Creative' },
-    { id: 'development', name: 'Development & IT' },
-    { id: 'marketing', name: 'Marketing' },
-    { id: 'writing', name: 'Writing' }
-  ];
-
-
+  errorMessage = '';
+  loading = false;
 
   constructor(
     private readonly apiService: ApiService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly toastService: ToastService 
   ) {}
 
   ngOnInit() {
     this.init();
   }
 
-  private async init() {
+  async init() {
+    await this.loadJobCategories();
     await this.loadCurrentUser();
     await this.loadJobs();
   }
 
   async loadCurrentUser() {
     try {
-       await firstValueFrom(this.authService.getUserAttributes())
-        .then((attributes: User) => {
-          this.currentUser = attributes;
-        });
+      this.currentUser = await firstValueFrom(this.authService.getUserAttributes()) ;
     } catch (error) {
       console.error('Failed to load user data:', error);
+      this.toastService.error('Failed to load user data. Please try again.');
     }
+  }
+
+  async loadJobCategories(){
+      try {
+      this.loading=true;
+      const jobPreferences= await this.apiService.getCategories()
+      this.categories.set(jobPreferences);  
+    }catch(err){
+      this.toastService.error('Failed to load categories.'+err);
+      console.log(err);
+    } 
   }
 
   async loadJobs() {
     try {
-      // Get jobs with category names included
-      await firstValueFrom(this.apiService.getJobs()).then((jobs: Job[]) => {
-        console.log('Loaded jobs:', jobs);
-        this.jobs = jobs;
-      });
+      const params: ListParams = {
+        offset: this.currentPage-1,
+        limit: this.itemsPerPage,
+        search: this.searchTerm,
+        category: this.selectedCategory,
+        status: this.selectedStatus,
+        sort: this.selectedSort
+      };
+
+      this.loading = true;
       
-      // If the current user has preferred categories, filter by them
-      if (this.currentUser?.jobPreferences?.length) {
-        this.selectedCategory = this.currentUser.jobPreferences[0];
+      let response;
+      if (this.mode() === 'jobSeeker') {
+        response = await this.apiService.getSeekerJobs(params);
+        this.jobSeekerId = response.seekerId;
+      } else {
+        response = await this.apiService.getOwnerJobs(params);
+        console.log('Job summary:', response.summary);
+        this.jobOwnerId = response.ownerId;
       }
       
-      this.applyFilters();
+      console.log('Loaded jobs:', response);
+      this.loading = false;
+      this.jobs = response.jobs;
+      this.totalJobs = response.total;
+      this.hasMore = response.hasMore;
+
+      this.totalPages = Math.ceil(this.totalJobs / this.itemsPerPage);
+
     } catch (error) {
+      this.loading = false;
       console.error('Failed to load jobs:', error);
+      this.toastService.error('Failed to load jobs. Please try again.');
     }
   }
 
   applyFilters() {
-    // Apply search filter
-    this.filteredJobs = this.jobs.filter(job => 
-      job.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
-
-    // Apply category filter
-    if (this.selectedCategory) {
-      this.filteredJobs = this.filteredJobs.filter(job => 
-        job.categoryId === this.selectedCategory
-      );
-    }
-
-    // Apply status filter
-    if (this.selectedStatus) {
-      this.filteredJobs = this.filteredJobs.filter(job => 
-        job.status === this.selectedStatus
-      );
-    }
-
-    // Apply sorting
-    switch (this.selectedSort) {
-      case 'newest':
-        this.filteredJobs.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        break;
-      case 'highest':
-        this.filteredJobs.sort((a, b) => b.payAmount - a.payAmount);
-        break;
-      case 'closing':
-        this.filteredJobs.sort((a, b) => 
-          new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime()
-        );
-        break;
-    }
-
-    // Calculate pagination
-    this.totalPages = Math.ceil(this.filteredJobs.length / this.itemsPerPage);
-    this.currentPage = 1; // Reset to first page when filters change
+    this.currentPage = 1;
+    this.loadJobs();
   }
 
-  getPaginatedJobs() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredJobs.slice(startIndex, startIndex + this.itemsPerPage);
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedCategory = '';
+    this.selectedStatus = '';
+    this.selectedSort = 'createdAt';
+    this.applyFilters();
   }
 
   changePage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.loadJobs();
     }
   }
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'active':
+      case 'open':
         return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
       case 'claimed':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'submitted':
+        return 'bg-blue-100 text-blue-800';
+      case 'approved':
         return 'bg-purple-100 text-purple-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -221,85 +245,237 @@ export class JobBoardComponent implements OnInit {
     });
   }
 
+  getJobCategoryName(categoryId: string): string {
+    const category = this.categories().filter(category => category.categoryId === categoryId)[0];
+    return category ? category.name : '';
+  }
+
   getCompletionDate(job: Job): string {
     const createdDate = new Date(job.createdAt);
     const completionDate = new Date(createdDate.getTime() + (job.timeToCompleteSeconds * 1000));
     return this.formatDate(completionDate.toISOString());
   }
 
-  isJobOwner(job: Job): boolean {
-    return this.currentUser?.email === job.ownerId;
+  isJobClaimedByUser(job: Job): boolean {
+    return job.claimerId === this.jobSeekerId;
   }
 
-  isJobClaimer(job: Job): boolean {
-    return this.currentUser?.email === job.claimerId;
+  isJobOwnedByUser(job: Job): boolean {
+    return job.ownerId === this.jobOwnerId;
   }
 
   canClaimJob(job: Job): boolean {
-    return !this.isJobOwner(job) && 
-           job.status === 'active' && 
-           !job.claimerId &&
+    return this.mode() === 'jobSeeker' && 
+           job.status === 'open' && 
            new Date(job.expiryDate) > new Date();
   }
 
   canSubmitJob(job: Job): boolean {
-    return this.isJobClaimer(job) && 
-           job.status === 'claimed' && 
-           (!job.submissionDeadline || new Date(job.submissionDeadline) > new Date());
+    return this.mode() === 'jobSeeker' && 
+           this.isJobClaimedByUser(job) && 
+           job.status === 'claimed';
   }
 
-  toggleActionMenu(jobId: string) {
-    this.showActionMenu = this.showActionMenu === jobId ? null : jobId;
+  canEditJob(job: Job): boolean {
+    return this.mode() === 'jobOwner' && 
+           this.isJobOwnedByUser(job) && 
+           (job.status === 'open' || job.status === 'claimed');
   }
 
-  // async claimJob(job: Job) {
-  //   try {
-  //     await this.apiService.claimJob(job.jobId);
-  //     alert('Job claimed successfully!');
-  //     this.loadJobs(); // Reload jobs to update the UI
-  //   } catch (error) {
-  //     console.error('Failed to claim job:', error);
-  //     alert('Failed to claim job. Please try again.');
-  //   }
-  // }
+  canDeleteJob(job: Job): boolean {
+    return this.mode() === 'jobOwner' && 
+           this.isJobOwnedByUser(job) && 
+           (job.status === 'open' || job.status === 'claimed');
+  }
+
+  canApproveJob(job: Job): boolean {
+    return this.mode() === 'jobOwner' && 
+           this.isJobOwnedByUser(job) && 
+           job.status === 'submitted';
+  }
+
+  canRejectJob(job: Job): boolean {
+    return this.mode() === 'jobOwner' && 
+           this.isJobOwnedByUser(job) && 
+           job.status === 'submitted';
+  }
+
+  openClaimModal(job: Job) {
+    this.selectedJob = job;
+    this.showClaimModal = true;
+  }
+
+  closeClaimModal() {
+    this.showClaimModal = false;
+    this.selectedJob = null;
+  }
+
+  openSubmitModal(job: Job) {
+    this.selectedJob = job;
+    this.submissionDetails = '';
+    this.showSubmitModal = true;
+  }
+
+  closeSubmitModal() {
+    this.showSubmitModal = false;
+    this.selectedJob = null;
+    this.submissionDetails = '';
+  }
+
+  openPostJobModal(job?: Job) {
+    this.selectedJob = job || null;
+    this.showPostJobModal = true;
+  }
+
+  closePostJobModal() {
+    this.showPostJobModal = false;
+    this.selectedJob = null;
+  }
+
+  openRejectModal(job: Job) {
+    this.selectedJob = job;
+    this.rejectReason = '';
+    this.showRejectModal = true;
+  }
+
+  closeRejectModal() {
+    this.showRejectModal = false;
+    this.selectedJob = null;
+    this.rejectReason = '';
+  }
+
+  openDetailsModal(job: Job) {
+    this.selectedJob = job;
+    this.showDetailsModal = true;
+  }
+
+  closeDetailsModal() {
+    this.showDetailsModal = false;
+    this.selectedJob = null;
+  }
+
+  @HostListener('keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if (this.showDetailsModal && event.key === 'Escape') {
+      this.closeDetailsModal();
+    }
+  }
+
+  setFocus(jobId: string) {
+    this.focusedJobId = jobId;
+  }
+
+  removeFocus() {
+    this.focusedJobId = null;
+  }
+
+  async claimJob() {
+    if (!this.selectedJob) return;
+    try {
+      this.loading=true
+      const response = await this.apiService.claimJob(this.selectedJob.jobId);
+      if (response.message) {
+        this.toastService.success('Job claimed successfully!', 5000); 
+        this.closeClaimModal();
+        this.loadJobs();
+      }
+      this.loading=false
+    } catch (error) {
+      this.loading=false
+      console.error('Failed to claim job:', error);
+      this.toastService.error('Failed to claim job: ' + error, 5000);
+    }
+  }
+
+  async submitJob() {
+    if (!this.selectedJob || !this.submissionDetails.trim()) {
+      this.toastService.error('Please provide submission details.');
+      return;
+    }
+
+    try {
+      this.loading = true;
+      const response = await this.apiService.submitJob(
+        this.selectedJob.jobId
+      );
+      
+      if (response.message) {
+        this.toastService.success('Job submitted successfully!');
+        this.loading = false;
+        this.closeSubmitModal();
+        this.loadJobs(); 
+      }
+    } catch (error) {
+      this.loading=false;
+      console.error('Failed to submit job:', error);
+      this.toastService.error('Failed to submit job. Please try again.');
+    }
+  }
+
+  async approveJob(job: Job) {
+    try {
+      this.loading = true;
+      const response = await this.apiService.approveJob(job.jobId);
+      
+      if (response.message) {
+        this.toastService.success('Job approved successfully!');
+        this.loading = false;
+        this.loadJobs();
+      }
+    } catch (error) {
+      this.loading = false;
+      console.error('Failed to approve job:', error);
+      this.toastService.error('Failed to approve job. Please try again.');
+    }
+  }
+
+  async rejectJob() {
+    if (!this.selectedJob || !this.rejectReason.trim()) {
+      this.toastService.error('Please provide a rejection reason.');
+      return;
+    }
+
+    try {
+      this.loading = true;
+      const response = await this.apiService.rejectJob(
+        this.selectedJob.jobId, 
+        this.rejectReason
+      );
+      
+      if (response.message) {
+        this.toastService.success('Job rejected successfully!');
+        this.loading = false;
+        this.closeRejectModal();
+        this.loadJobs();
+      }
+    } catch (error) {
+      this.loading = false;
+      console.error('Failed to reject job:', error);
+      this.toastService.error('Failed to reject job. Please try again.');
+    }
+  }
 
   async deleteJob(job: Job) {
-    if (confirm('Are you sure you want to delete this job?')) {
-      try {
-        await this.apiService.deleteJob(job.jobId);
-        alert('Job deleted successfully!');
-        this.loadJobs(); // Reload jobs to update the UI
-      } catch (error) {
-        console.error('Failed to delete job:', error);
-        alert('Failed to delete job. Please try again.');
+    if (!confirm('Are you sure you want to delete this job?')) return;
+    
+    try {
+      this.loading = true;
+      const response = await this.apiService.deleteJob(job.jobId);
+      
+      if (response.message) {
+        this.toastService.success('Job deleted successfully!');
+        this.loading = false;
+        this.loadJobs();
       }
+    } catch (error) {
+      this.loading = false;
+      console.error('Failed to delete job:', error);
+      this.toastService.error('Failed to delete job. Please try again.');
     }
   }
 
-  // async submitJob(job: Job) {
-  //   // This would typically open a modal or navigate to a submission page
-  //   alert('Redirecting to job submission page...');
-  // }
-
-  async approveSubmission(job: Job) {
-    try {
-      await this.apiService.approveSubmission(job.jobId);
-      alert('Submission approved successfully!');
-      this.loadJobs(); // Reload jobs to update the UI
-    } catch (error) {
-      console.error('Failed to approve submission:', error);
-      alert('Failed to approve submission. Please try again.');
-    }
-  }
-
-  async rejectSubmission(job: Job) {
-    try {
-      await this.apiService.rejectSubmission(job.jobId);
-      alert('Submission rejected successfully!');
-      this.loadJobs(); // Reload jobs to update the UI
-    } catch (error) {
-      console.error('Failed to reject submission:', error);
-      alert('Failed to reject submission. Please try again.');
-    }
+  onJobSaved() {
+    this.closePostJobModal();
+    this.loadJobs();
   }
 }
