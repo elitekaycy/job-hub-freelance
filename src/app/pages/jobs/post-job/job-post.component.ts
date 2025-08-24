@@ -3,6 +3,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../../config/services/apiService/api.service';
 import { SingleSelectComponent } from '../../../components/single-select/single-select.component';
 import { Categories } from '../../../config/interfaces/general.interface';
+import { ToastService } from '../../../config/services/toast/toast.service';
+
 
 @Component({
   selector: 'app-job-post',
@@ -32,7 +34,11 @@ export class JobPostComponent {
   jobCategories: Categories[] = [];
   errorMessage = '';
 
-  constructor(private readonly fb: FormBuilder, private readonly apiService: ApiService) {}
+  constructor(
+    private readonly fb: FormBuilder, 
+    private readonly apiService: ApiService , 
+    private readonly toastService: ToastService
+  )  {}
   ngOnInit() {
     this.loadJobCategories();
   }
@@ -41,7 +47,7 @@ export class JobPostComponent {
     try {
     this.jobCategories = await this.apiService.getCategories()  
   }catch(err){
-    this.errorMessage = 'Failed to load categories.';
+    this.toastService.error(this.errorMessage);
     console.log(err);
   } 
   }
@@ -70,14 +76,14 @@ export class JobPostComponent {
         timeToCompleteDate: this.secondsToDate(response.timeToCompleteSeconds),
         expiryDate: this.secondsToDate(response.expirySeconds),
       });
-      alert('Job posted successfully!');
+      this.toastService.success('Job posted successfully!');
       this.jobForm.reset();
       // reset select field on jobForm
       this.jobForm.patchValue({ categoryId: '' });
       this.loading = false;
     },
     error: (err) => {
-      alert('Failed to post job: ' + err.message);
+      this.toastService.error('Failed to post job: ' + err.message);
       this.loading = false;
     }
   });

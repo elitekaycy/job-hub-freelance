@@ -30,7 +30,7 @@ export class ApiService {
   }
 
   getJobs(): Observable<any> {
-    return this.http.get(this.apiUrl+'/job/owner/list');
+    return this.http.get(this.apiUrl+'/job/owner/list?type=all');
   }
 
   async submitJob(jobId: string): Promise<any> {
