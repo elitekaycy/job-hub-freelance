@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Categories, CategoriesResponse, Job, ListParams } from '../../interfaces/general.interface';
+import { Categories, CategoriesResponse,ListParams } from '../../interfaces/general.interface';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
