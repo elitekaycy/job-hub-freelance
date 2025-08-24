@@ -1,9 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, HostListener  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../config/services/apiService/api.service';
 import { AuthService } from '../../../config/services/authService/auth-service.service';
-import { Categories, Job, User } from '../../../config/interfaces/general.interface';
+import { Categories, Job, ListParams, User } from '../../../config/interfaces/general.interface';
 import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
 import { firstValueFrom } from 'rxjs';
 import { ToastService } from '../../../config/services/toast/toast.service';
@@ -17,12 +17,19 @@ import { ToastService } from '../../../config/services/toast/toast.service';
     .job-card {
       transition: all 0.3s ease;
       border-left: 4px solid transparent;
+      cursor: pointer;
     }
     
-    .job-card:hover {
+    .job-card:hover, .job-card:focus {
       transform: translateY(-2px);
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       border-left-color: #3b82f6;
+      outline: none;
+    }
+
+    .job-card.focused {
+      border: 2px solid #3b82f6;
+      transform: scale(1.02);
     }
     
     .pagination-btn {
@@ -50,26 +57,38 @@ import { ToastService } from '../../../config/services/toast/toast.service';
     
     .modal {
       transition: all 0.3s ease-out;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .description-clamp {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
   `]
 })
 export class JobSeekersBoardComponent implements OnInit {
   jobs: Job[] = [];
-  filteredJobs: Job[] = [];
   currentPage = 1;
-  itemsPerPage = 10;
+  itemsPerPage = 9;
   totalPages = 1;
+  totalJobs = 0;
+  hasMore = false;
   searchTerm = '';
   selectedCategory = '';
   selectedStatus = '';
-  selectedSort = 'newest';
+  selectedSort = 'createdAt';
   
   currentUser: User | null = null;
   showClaimModal = false;
   showSubmitModal = false;
+  showDetailsModal = false;
   selectedJob: Job | null = null;
   submissionDetails = '';
   jobSeekerId= '';
+  focusedJobId: string | null = null;
 
   statusOptions = signal(statusOptions)
   sortOptions = signal(sortOptions)
@@ -100,6 +119,7 @@ export class JobSeekersBoardComponent implements OnInit {
       this.currentUser = await firstValueFrom(this.authService.getUserAttributes()) ;
     } catch (error) {
       console.error('Failed to load user data:', error);
+      this.toastService.error('Failed to load user data. Please try again.');
     }
   }
 
@@ -109,20 +129,33 @@ export class JobSeekersBoardComponent implements OnInit {
       const jobPreferences= await this.apiService.getCategories()
       this.categories.set(jobPreferences);  
     }catch(err){
-      this.errorMessage = 'Failed to load categories.';
+      this.toastService.error('Failed to load categories.'+err);
       console.log(err);
     } 
   }
 
   async loadJobs() {
     try {
+      const params: ListParams = {
+        offset: this.currentPage-1,
+        limit: this.itemsPerPage,
+        search: this.searchTerm,
+        category: this.selectedCategory,
+        status: this.selectedStatus,
+        sort: this.selectedSort
+      };
+
       this.loading = true;
-      const seekerJobs = await this.apiService.getSeekerJobs();
+      const seekerJobs = await this.apiService.getSeekerJobs(params);
       console.log('Loaded jobs:', seekerJobs);
       this.loading = false;
       this.jobSeekerId = seekerJobs.seekerId;  
       this.jobs = seekerJobs.jobs;
-      this.applyFilters();
+      this.totalJobs = seekerJobs.total;
+      this.hasMore = seekerJobs.hasMore;
+
+      this.totalPages = Math.ceil(this.totalJobs / this.itemsPerPage);
+
     } catch (error) {
       this.loading = false;
       console.error('Failed to load jobs:', error);
@@ -131,56 +164,22 @@ export class JobSeekersBoardComponent implements OnInit {
   }
 
   applyFilters() {
-    // Apply search filter
-    this.filteredJobs = this.jobs.filter(job => 
-      job.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
-
-    // Apply category filter
-    if (this.selectedCategory) {
-      this.filteredJobs = this.filteredJobs.filter(job => 
-        job.categoryId === this.selectedCategory
-      );
-    }
-    
-    // Apply status filter
-    if (this.selectedStatus) {
-      this.filteredJobs = this.filteredJobs.filter(job => 
-        job.status === this.selectedStatus
-      );
-    }
-
-    // Apply sorting
-    switch (this.selectedSort) {
-      case 'newest':
-        this.filteredJobs.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        break;
-      case 'highest':
-        this.filteredJobs.sort((a, b) => b.payAmount - a.payAmount);
-        break;
-      case 'closing':
-        this.filteredJobs.sort((a, b) => 
-          new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime()
-        );
-        break;
-    }
-
-    // Calculate pagination
-    this.totalPages = Math.ceil(this.filteredJobs.length / this.itemsPerPage);
-    this.currentPage = 1;
+    this.currentPage = 1; // Reset to first page when filters change
+    this.loadJobs();
   }
 
-  getPaginatedJobs() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredJobs.slice(startIndex, startIndex + this.itemsPerPage);
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedCategory = '';
+    this.selectedStatus = '';
+    this.selectedSort = 'createdAt';
+    this.applyFilters();
   }
 
   changePage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.loadJobs();
     }
   }
 
@@ -268,15 +267,44 @@ export class JobSeekersBoardComponent implements OnInit {
     this.submissionDetails = '';
   }
 
+  openDetailsModal(job: Job) {
+    this.selectedJob = job;
+    this.showDetailsModal = true;
+    console.log(job,"details modal", this.showDetailsModal);
+  }
+
+  closeDetailsModal() {
+    console.log(this.showDetailsModal,"details modal");
+    this.showDetailsModal = false;
+    this.selectedJob = null;
+  }
+
+  @HostListener('keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    // Close details modal on Escape key
+    if (this.showDetailsModal && event.key === 'Escape') {
+      this.closeDetailsModal();
+    }
+  }
+
+  setFocus(jobId: string) {
+    this.focusedJobId = jobId;
+  }
+
+  removeFocus() {
+    this.focusedJobId = null;
+  }
+
+
   async claimJob() {
     if (!this.selectedJob) return;
     try {
       this.loading=true
       const response = await this.apiService.claimJob(this.selectedJob.jobId);
-      if (response) {
+      if (response.message) {
         this.toastService.success('Job claimed successfully!', 5000); 
         this.closeClaimModal();
-        this.loadJobs(); // Refresh the job list
+        this.loadJobs();
       }
       this.loading=false
     } catch (error) {
@@ -300,10 +328,10 @@ export class JobSeekersBoardComponent implements OnInit {
         this.toastService.success('Job submitted successfully!');
         this.loading = false;
         this.closeSubmitModal();
-        this.loadJobs(); // Refresh the job list
+        this.loadJobs(); 
       }
     } catch (error) {
-      this.loading
+      this.loading=false;
       console.error('Failed to submit job:', error);
       this.toastService.error('Failed to submit job. Please try again.');
     }

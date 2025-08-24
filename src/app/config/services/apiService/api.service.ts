@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Categories, CategoriesResponse, Job } from '../../interfaces/general.interface';
+import { Categories, CategoriesResponse, Job, ListParams } from '../../interfaces/general.interface';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
@@ -33,16 +33,17 @@ export class ApiService {
     return this.http.get(this.apiUrl+'/job/owner/list');
   }
 
-  // async unclaimJob(jobId: string, seekerId: string): Promise<any> {
-  //   return await firstValueFrom(this.http.post(`/api/jobs/${jobId}/unclaim`, {seekerId}));
-  // }
-
   async submitJob(jobId: string): Promise<any> {
     return await firstValueFrom(this.http.post(this.apiUrl+`/job/seeker/submit/`+jobId, {}));
   }
 
-  async getSeekerJobs(): Promise<any> {
-    return await firstValueFrom(this.http.get(this.apiUrl+'/job/seeker/list?type=all'));
+  async getSeekerJobs(params: ListParams): Promise<any> {
+    let urlParams = `/job/seeker/list?type=all&offset=${params.offset}&limit=${params.limit}&sortBy=${params.sort}`;
+    if (params.search) urlParams += `&search=${params.search}`;
+    if (params.category) urlParams += `&category=${params.category}`;
+    if (params.status) urlParams += `&status=${params.status}`;
+
+    return await firstValueFrom(this.http.get(this.apiUrl + urlParams));
   }
 
   async claimJob(jobId: string): Promise<any> {

@@ -1,4 +1,3 @@
-<!-- job-seekers-board.component.html -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <!-- Header -->
   <div class="mb-8">
@@ -67,7 +66,7 @@
     
     <div class="flex justify-between items-center mt-6">
       <p class="text-gray-600">
-        Showing {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ currentPage * itemsPerPage > filteredJobs.length ? filteredJobs.length : currentPage * itemsPerPage }} of {{ filteredJobs.length }} jobs
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ currentPage * itemsPerPage > totalJobs ? totalJobs : currentPage * itemsPerPage  }} of {{ totalJobs }} jobs
       </p>
       <div *ngIf="currentUser?.jobPreferences?.length" class="text-sm text-blue-600">
         <span class="font-medium">Your preferences:</span> 
@@ -77,31 +76,38 @@
   </div>
 
   <!-- Job Listings -->
-  <div class="grid grid-cols-1 gap-6 mb-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
     <!-- Job Card -->
-    <div *ngFor="let job of getPaginatedJobs()" class="job-card bg-white rounded-lg shadow p-6">
-      <div class="flex justify-between items-start">
-        <div>
-          <h2 class="text-xl font-bold text-blue-700">{{ job.name }}</h2>
-          <p class="text-gray-600 mt-1">{{ job.description | slice:0:100 }}{{ job.description.length > 100 ? '...' : '' }}</p>
-        </div>
-        <span class="status-badge" [ngClass]="getStatusClass(job.status)">
+    <div *ngFor="let job of jobs" 
+      class="job-card bg-white rounded-lg shadow p-4"
+      [class.focused]="focusedJobId === job.jobId"
+      (click)="openDetailsModal(job)"
+      (mouseenter)="setFocus(job.jobId)"
+      (mouseleave)="removeFocus()"
+      tabindex="0">
+      <div class="flex justify-between items-start mb-2">
+        <h2 class="text-lg font-bold text-blue-700 truncate">{{ job.name }}</h2>
+        <span class="status-badge shrink-0 ml-2" [ngClass]="getStatusClass(job.status)">
           {{ job.status | titlecase }}
         </span>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+      <p class="text-gray-600 text-sm mb-3 description-clamp">
+        {{ job.description }}
+      </p>
+      
+      <div class="grid grid-cols-1 gap-2 mb-3">
         <div class="flex items-center">
-          <span class="text-gray-400 mr-2">$</span>
-          <span class="font-medium">{{ job.payAmount | number }}</span>
+          <span class="text-gray-400 mr-2 text-sm">$</span>
+          <span class="font-medium text-sm">{{ job.payAmount | number }}</span>
         </div>
         <div class="flex items-center">
-          <span class="text-gray-400 mr-2">⏱</span>
-          <span>Complete by: {{ getCompletionDate(job) }}</span>
+          <span class="text-gray-400 mr-2 text-sm">⏱</span>
+          <span class="text-sm">By: {{ getCompletionDate(job) }}</span>
         </div>
         <div class="flex items-center">
-          <span class="text-gray-400 mr-2">📅</span>
-          <span>Expires: {{ formatDate(job.expiryDate) }}</span>
+          <span class="text-gray-400 mr-2 text-sm">📅</span>
+          <span class="text-sm">Exp: {{ formatDate(job.expiryDate) }}</span>
         </div>
       </div>
       
@@ -118,48 +124,45 @@
           </div>
         </div>
         
-        <div class="flex space-x-2">
-          <!-- Claim/Unclaim button -->
+        <div class="flex space-x-1">
+          <!-- Claim button -->
           <button 
             *ngIf="canClaimJob(job)"
-            (click)="openClaimModal(job)"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-            Claim Job
+            (click)="$event.stopPropagation(); openClaimModal(job)"
+            class="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition">
+            Claim
           </button>
           
           <!-- Submit button -->
           <button 
             *ngIf="canSubmitJob(job)"
-            (click)="openSubmitModal(job)"
-            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-            Submit Work
-          </button>
-          
-          <!-- View Details button -->
-          <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
-            View Details
+            (click)="$event.stopPropagation(); openSubmitModal(job)"
+            class="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition">
+            Submit
           </button>
         </div>
       </div>
     </div>
   </div>
 
+
   <!-- No jobs message -->
-  <div *ngIf="filteredJobs.length === 0" class="bg-white rounded-lg shadow p-8 text-center">
+  <div *ngIf="jobs.length === 0" class="bg-white rounded-lg shadow p-8 text-center">
     <p class="text-gray-600 text-lg">No jobs found matching your criteria.</p>
-    <button (click)="selectedCategory = ''; selectedStatus = ''; searchTerm = ''; applyFilters()" 
+    <button (click)="clearFilters()" 
             class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
       Clear Filters
     </button>
   </div>
 
+
   <!-- Pagination -->
-  <div *ngIf="filteredJobs.length > 0" class="bg-white rounded-lg shadow px-6 py-4 flex items-center justify-between">
+  <div *ngIf="jobs.length > 0" class="bg-white rounded-lg shadow px-6 py-4 flex items-center justify-between">
     <div>
       <p class="text-sm text-gray-700">
         Showing <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to 
-        <span class="font-medium">{{ currentPage * itemsPerPage > filteredJobs.length ? filteredJobs.length : currentPage * itemsPerPage }}</span> of 
-        <span class="font-medium">{{ filteredJobs.length }}</span> results
+        <span class="font-medium">{{ currentPage * itemsPerPage > totalJobs ? totalJobs : currentPage * itemsPerPage }}</span> of 
+        <span class="font-medium">{{ totalJobs }}</span> results
       </p>
     </div>
     <div class="flex space-x-2">
@@ -182,7 +185,7 @@
       
       <button 
         (click)="changePage(currentPage + 1)" 
-        [disabled]="currentPage === totalPages"
+        [disabled]="currentPage === totalPages || !hasMore"
         class="pagination-btn px-3 py-1 rounded-lg border border-gray-300 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
         Next
       </button>
@@ -232,6 +235,76 @@
           (click)="submitJob()"
           class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
           {{loading ? "Submitting..." : "Submit Work"}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Details Modal -->
+<div *ngIf="showDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl modal modal-content">
+      <div class="flex justify-between items-start mb-4">
+        <h2 class="text-2xl font-bold text-blue-700">{{ selectedJob?.name }}</h2>
+        <button 
+          (click)="closeDetailsModal()"
+          class="text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Category</h3>
+          <p class="text-lg">{{ getJobCategoryName(selectedJob?.categoryId || '') }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Status</h3>
+          <span class="status-badge" [ngClass]="getStatusClass(selectedJob?.status || '')">
+            {{ selectedJob?.status | titlecase }}
+          </span>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Payment</h3>
+          <p class="text-lg">${{ selectedJob?.payAmount | number }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Complete By</h3>
+          <p class="text-lg">{{ getCompletionDate(selectedJob!) }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Expires</h3>
+          <p class="text-lg">{{ formatDate(selectedJob?.expiryDate || '') }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Posted</h3>
+          <p class="text-lg">{{ formatDate(selectedJob?.createdAt || '') }}</p>
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <h3 class="text-sm font-medium text-gray-500">Description</h3>
+        <p class="text-gray-800">{{ selectedJob?.description }}</p>
+      </div>
+      
+      <div class="flex justify-end space-x-3">
+        <button 
+          *ngIf="canClaimJob(selectedJob!)"
+          (click)="showDetailsModal = false; openClaimModal(selectedJob!)"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+          {{ loading ? 'Claiming...' : 'Confirm Claim'}}
+        </button>
+        <button 
+          *ngIf="canSubmitJob(selectedJob!)"
+          (click)="showDetailsModal = false; openSubmitModal(selectedJob!)"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+          {{loading ? "Submitting..." : "Submit Work"}}
+        </button>
+        <button 
+          (click)="closeDetailsModal()"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+          Close
         </button>
       </div>
     </div>

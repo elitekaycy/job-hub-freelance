@@ -81,3 +81,12 @@ export interface Toast {
   classname?: string;
   delay?: number;
 }
+
+export interface ListParams {
+    offset?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+    status?: string;
+    sort?: string;
+}
