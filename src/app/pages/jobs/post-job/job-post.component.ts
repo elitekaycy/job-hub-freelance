@@ -93,7 +93,7 @@ export class JobPostComponent {
 
     // Determine if we're creating or updating
     const apiCall = this.job() 
-      ? this.apiService.updateJob(this.job()?.jobId, payload)
+      ? this.apiService.updateJob(this.job()?.jobId!, payload)
       : this.apiService.postJob(payload);
 
     apiCall.subscribe({

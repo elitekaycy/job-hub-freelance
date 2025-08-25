@@ -6,7 +6,7 @@
       <nav class="mt-4 flex-1 space-y-1"[attr.aria-label]="'Sidebar'">
         <a routerLink="/dashboard" routerLinkActive="nav-active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="onClickRouterLink('Dashboard')">🏠 Overview</a>
         <a routerLink="/jobs" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Job Board')">📋 Job Board</a>
-        <a routerLink="/post-job" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Post Job')">📝 Post a Job</a>
+        <a routerLink="/manage-jobs" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Manage Jobs')">📝 Manage Jobs</a>
         <a routerLink="/profile" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Profile')">👤 Profile</a>
       </nav>
 
@@ -33,7 +33,7 @@
           <nav class="px-3 py-2 space-y-1" [attr.aria-label]="'Main navigation'">
             <a routerLink="/dashboard" class="nav-link block" (click)="onClickRouterLink('Dashboard')">🏠 Overview</a>
             <a routerLink="/jobs" class="nav-link block" (click)="onClickRouterLink('Job Board')">📋 Job Board</a>
-            <a routerLink="/post-job" class="nav-link block" (click)="onClickRouterLink('Post Job')">📝 Post a Job</a>
+            <a routerLink="/manage-job" class="nav-link block" (click)="onClickRouterLink('Manage Jobs')">📝 Manage Jobs</a>
             <a routerLink="/profile" class="nav-link block" (click)="onClickRouterLink('Profile')">👤 Profile</a>
           </nav>
         </div>

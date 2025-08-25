@@ -1,13 +1,14 @@
-import { Component, OnInit, signal, HostListener, input } from '@angular/core';
+import { Component, OnInit, signal, HostListener, input, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../config/services/apiService/api.service';
 import { AuthService } from '../../../config/services/authService/auth-service.service';
 import { Categories, Job, ListParams, User } from '../../../config/interfaces/general.interface';
 import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
-import { firstValueFrom } from 'rxjs';
+import { debounce, debounceTime, distinctUntilChanged, firstValueFrom, Subject, Subscription, switchMap } from 'rxjs';
 import { ToastService } from '../../../config/services/toast/toast.service';
 import { JobPostComponent } from '../post-job/job-post.component';
+
 
 export type JobBoardMode = 'jobSeeker' | 'jobOwner';
 
@@ -76,8 +77,10 @@ export type JobBoardMode = 'jobSeeker' | 'jobOwner';
     }
   `]
 })
-export class JobBoardComponent implements OnInit {
+export class JobBoardComponent implements OnInit, OnDestroy {
   mode = input<JobBoardMode>("jobSeeker");
+  private subscription: Subscription | undefined;
+  private searchTerms = new Subject<string>();
   
   jobs: Job[] = [];
   currentPage = 1;
@@ -118,6 +121,7 @@ export class JobBoardComponent implements OnInit {
 
   ngOnInit() {
     this.init();
+    this.setupSearchSubscription();
   }
 
   async init() {
@@ -148,34 +152,8 @@ export class JobBoardComponent implements OnInit {
 
   async loadJobs() {
     try {
-      const params: ListParams = {
-        offset: this.currentPage-1,
-        limit: this.itemsPerPage,
-        search: this.searchTerm,
-        category: this.selectedCategory,
-        status: this.selectedStatus,
-        sort: this.selectedSort
-      };
-
-      this.loading = true;
-      
-      let response;
-      if (this.mode() === 'jobSeeker') {
-        response = await this.apiService.getSeekerJobs(params);
-        this.jobSeekerId = response.seekerId;
-      } else {
-        response = await this.apiService.getOwnerJobs(params);
-        console.log('Job summary:', response.summary);
-        this.jobOwnerId = response.ownerId;
-      }
-      
-      console.log('Loaded jobs:', response);
-      this.loading = false;
-      this.jobs = response.jobs;
-      this.totalJobs = response.total;
-      this.hasMore = response.hasMore;
-
-      this.totalPages = Math.ceil(this.totalJobs / this.itemsPerPage);
+      const response = await firstValueFrom(this.loadJobsService());
+      this.handleResponse(response);
 
     } catch (error) {
       this.loading = false;
@@ -183,6 +161,61 @@ export class JobBoardComponent implements OnInit {
       this.toastService.error('Failed to load jobs. Please try again.');
     }
   }
+
+  private setupSearchSubscription() {
+    this.subscription = this.searchTerms
+      .pipe(
+        debounceTime(300), // Wait 300ms after last keystroke
+        distinctUntilChanged(), // Ignore duplicate terms
+        switchMap((term: string) => {
+          this.searchTerm = term; // Update searchTerm
+          this.currentPage = 1; // Reset page on new search
+          return this.loadJobsService(); 
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.handleResponse(response);
+        },
+        error: (err) => {
+          this.loading = false;
+          this.toastService.error('Search failed: ' + err.message);
+        },
+      });
+  }
+
+  onSearchTermChange(term: string) {
+    this.searchTerms.next(term); // Push term to Subject
+  }
+
+  private handleResponse(response: any) {
+    if (this.mode() === 'jobSeeker') {
+      this.jobSeekerId = response.seekerId;
+    } else {
+      console.log('Job summary:', response.summary);
+      this.jobOwnerId = response.ownerId;
+    }
+    this.jobs = response.jobs;
+    this.totalJobs = response.total;
+    this.hasMore = response.hasMore;
+    this.totalPages = Math.ceil(this.totalJobs / this.itemsPerPage);
+    this.loading = false;
+  }
+
+  private loadJobsService(){
+    const params: ListParams = {
+      offset: (this.currentPage - 1) * this.itemsPerPage,
+      limit: this.itemsPerPage,
+      search: this.searchTerm || undefined,
+      category: this.selectedCategory || undefined,
+      status: this.selectedStatus || undefined,
+      sort: this.selectedSort || undefined,
+    };
+
+    return this.apiService.getJobs(params, this.mode());
+  }
+
+
 
   applyFilters() {
     this.currentPage = 1;
@@ -477,5 +510,11 @@ export class JobBoardComponent implements OnInit {
   onJobSaved() {
     this.closePostJobModal();
     this.loadJobs();
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 }

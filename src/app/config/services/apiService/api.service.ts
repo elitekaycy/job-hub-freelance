@@ -29,34 +29,30 @@ export class ApiService {
     return this.http.post(this.apiUrl+'/job/owner/create', job);
   }
 
-  getOwnerJobs(params: ListParams): Observable<any> {
-    let urlParams = `/job/owner/list?type=all&offset=${params.offset}&limit=${params.limit}&sortBy=${params.sort}`;
-    if (params.search) urlParams += `&search=${params.search}`;
-    if (params.category) urlParams += `&category=${params.category}`;
-    if (params.status) urlParams += `&status=${params.status}`;
-    
-    return this.http.get(this.apiUrl+ urlParams);
+  updateJob(jobId: string, job: any): Observable<any> {
+    return this.http.put(this.apiUrl+`/job/owner/update/`+jobId, job);
   }
 
   async submitJob(jobId: string): Promise<any> {
     return await firstValueFrom(this.http.post(this.apiUrl+`/job/seeker/submit/`+jobId, {}));
   }
 
-  async getSeekerJobs(params: ListParams): Promise<any> {
-    let urlParams = `/job/seeker/list?type=all&offset=${params.offset}&limit=${params.limit}&sortBy=${params.sort}`;
+  getJobs(params: ListParams, type: string): Observable<any> {
+    let endpoint = type === 'jobOwner' ? '/job/owner/list' : '/job/seeker/list';
+    let urlParams = `${endpoint}?type=all&offset=${params.offset}&limit=${params.limit}&sortBy=${params.sort}`;
     if (params.search) urlParams += `&search=${params.search}`;
     if (params.category) urlParams += `&category=${params.category}`;
     if (params.status) urlParams += `&status=${params.status}`;
 
-    return await firstValueFrom(this.http.get(this.apiUrl + urlParams));
+    return this.http.get(this.apiUrl + urlParams);
   }
 
   async claimJob(jobId: string): Promise<any> {
     return await firstValueFrom(this.http.post(this.apiUrl+'/job/seeker/claim/'+jobId, {}));
   }
 
-  async rejectJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.post(this.apiUrl+`/api/jobs/${jobId}/reject`, {})); // Empty body is required in this case
+  async rejectJob(jobId: string, reason: string): Promise<any> {
+    return await firstValueFrom(this.http.post(this.apiUrl+`/api/jobs/${jobId}/reject`, {reason})); 
   }
 
   async approveJob(jobId: string): Promise<any> {
@@ -64,7 +60,7 @@ export class ApiService {
   } 
 
   async deleteJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.delete(this.apiUrl+`/api/jobs/${jobId}`)); // Empty body is required in this case
+    return await firstValueFrom(this.http.delete(this.apiUrl+`/api/jobs/${jobId}`)); 
   }
 
 }

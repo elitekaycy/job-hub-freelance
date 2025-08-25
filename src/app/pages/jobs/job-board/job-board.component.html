@@ -35,7 +35,7 @@
           id="search"
           type="text" 
           [(ngModel)]="searchTerm" 
-          (ngModelChange)="applyFilters()"
+          (ngModelChange)="onSearchTermChange($event)"
           placeholder="Job title or keyword" 
           class="form-input">
       </div>
