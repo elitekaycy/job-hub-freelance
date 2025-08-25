@@ -5,7 +5,7 @@ import { ApiService } from '../../../config/services/apiService/api.service';
 import { AuthService } from '../../../config/services/authService/auth-service.service';
 import { Categories, Job, ListParams, User } from '../../../config/interfaces/general.interface';
 import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
-import { debounceTime, distinctUntilChanged, firstValueFrom, Subject, Subscription, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged,Subject, Subscription, switchMap,from } from 'rxjs';
 import { ToastService } from '../../../config/services/toast/toast.service';
 import { JobPostComponent } from '../post-job/job-post.component';
 
@@ -125,41 +125,44 @@ export class JobBoardComponent implements OnInit, OnDestroy {
   }
 
   async init() {
-    await this.loadJobCategories();
-    await this.loadCurrentUser();
-    await this.loadJobs();
+    this.loadJobCategories();
+    this.loadCurrentUser();
+    this.loadJobs();
   }
 
-  async loadCurrentUser() {
-    try {
-      this.currentUser = await firstValueFrom(this.authService.getUserAttributes()) ;
-    } catch (error) {
-      console.error('Failed to load user data:', error);
-      this.toastService.error('Failed to load user data. Please try again.');
-    }
+  loadCurrentUser() {
+    this.authService.getUserAttributes().subscribe({
+      next: (res) => this.currentUser = res,
+      error: (err) => {
+        console.error('Failed to load user data:', err);
+        this.toastService.error('Failed to load user data. Please try again.');
+      }  
+    });
   }
 
-  async loadJobCategories(){
-      try {
-      this.loading=true;
-      const jobPreferences= await this.apiService.getCategories()
-      this.categories.set(jobPreferences);  
-    }catch(err){
-      this.toastService.error('Failed to load categories.'+err);
-      console.log(err);
-    } 
+  loadJobCategories(){
+    this.loading=true;
+
+    from(this.apiService.getCategories()).subscribe({
+      next: (res) => {
+        this.categories.set(res);  
+        this.loading=false;
+      },
+      error: (err) => {
+        this.toastService.error('Failed to load categories.'+err);
+        this.loading=false;
+      }  
+    });
   }
 
-  async loadJobs() {
-    try {
-      const response = await firstValueFrom(this.loadJobsService());
-      this.handleResponse(response);
-
-    } catch (error) {
-      this.loading = false;
-      console.error('Failed to load jobs:', error);
-      this.toastService.error('Failed to load jobs. Please try again.');
-    }
+  loadJobs() {
+    this.loadJobsService().subscribe({
+      next: (res) => this.handleResponse(res),
+      error: (err) => {
+        this.loading = false;
+        this.toastService.error('Failed to load jobs. Please try again.');
+        console.error('Failed to load jobs:', err);
+    }});
   }
 
   private setupSearchSubscription() {
