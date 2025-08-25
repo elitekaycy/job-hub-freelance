@@ -5,7 +5,7 @@ import { ApiService } from '../../../config/services/apiService/api.service';
 import { AuthService } from '../../../config/services/authService/auth-service.service';
 import { Categories, Job, ListParams, User } from '../../../config/interfaces/general.interface';
 import { sortOptions, statusOptions } from '../../../config/data/jobs.data';
-import { debounce, debounceTime, distinctUntilChanged, firstValueFrom, Subject, Subscription, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, firstValueFrom, Subject, Subscription, switchMap } from 'rxjs';
 import { ToastService } from '../../../config/services/toast/toast.service';
 import { JobPostComponent } from '../post-job/job-post.component';
 
@@ -80,7 +80,7 @@ export type JobBoardMode = 'jobSeeker' | 'jobOwner';
 export class JobBoardComponent implements OnInit, OnDestroy {
   mode = input<JobBoardMode>("jobSeeker");
   private subscription: Subscription | undefined;
-  private searchTerms = new Subject<string>();
+  private readonly searchTerms = new Subject<string>();
   
   jobs: Job[] = [];
   currentPage = 1;
@@ -309,30 +309,17 @@ export class JobBoardComponent implements OnInit, OnDestroy {
            job.status === 'claimed';
   }
 
-  canEditJob(job: Job): boolean {
+  canEditOrDeleteJob(job: Job): boolean {
     return this.mode() === 'jobOwner' && 
            this.isJobOwnedByUser(job) && 
            (job.status === 'open' || job.status === 'claimed');
   }
 
-  canDeleteJob(job: Job): boolean {
+  canApproveOrRejectJob(job: Job): boolean {
     return this.mode() === 'jobOwner' && 
            this.isJobOwnedByUser(job) && 
-           (job.status === 'open' || job.status === 'claimed');
+           job.status === 'submitted' ;
   }
-
-  canApproveJob(job: Job): boolean {
-    return this.mode() === 'jobOwner' && 
-           this.isJobOwnedByUser(job) && 
-           job.status === 'submitted';
-  }
-
-  canRejectJob(job: Job): boolean {
-    return this.mode() === 'jobOwner' && 
-           this.isJobOwnedByUser(job) && 
-           job.status === 'submitted';
-  }
-
   openClaimModal(job: Job) {
     this.selectedJob = job;
     this.showClaimModal = true;
