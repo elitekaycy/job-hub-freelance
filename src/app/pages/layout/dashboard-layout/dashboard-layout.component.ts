@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../config/services/authService/auth-service.service';
+import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -23,6 +25,7 @@ export class DashboardLayoutComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   currentRoute = "Dashboard";
+  showAdmin = true;
 
 
   onClickRouterLink(route: string) {

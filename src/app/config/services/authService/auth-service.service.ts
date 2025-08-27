@@ -16,6 +16,7 @@ import {
   updatePassword,
   UpdateUserAttributesOutput,
   confirmUserAttribute,
+  fetchAuthSession,
   type VerifiableUserAttributeKey
 } from 'aws-amplify/auth';
 
@@ -236,6 +237,32 @@ export class AuthService {
       catchError(error => {
         console.error('Confirm attribute error:', error);
         throw error;
+      })
+    );
+  }
+
+  isAdmin(): Observable<boolean> {
+    return from(fetchAuthSession()).pipe(
+      map(session => {
+        console.log('Full session object:', session);
+        
+        if (!session.tokens?.accessToken) {
+          console.log('No access token found in session');
+          return false;
+        }
+        
+        console.log('Access token payload:', session.tokens.accessToken.payload);
+        const groups = session.tokens.accessToken.payload['cognito:groups'] as string[] | undefined;
+        console.log('User groups from cognito:groups:', groups);
+        
+        const isAdmin = groups ? groups.includes('ADMIN') : false;
+        console.log('Is user admin?', isAdmin);
+        
+        return isAdmin;
+      }),
+      catchError(error => {
+        console.error('Error checking admin status:', error);
+        return of(false);
       })
     );
   }

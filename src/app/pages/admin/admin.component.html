@@ -1,0 +1,326 @@
+<div class="w-full min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Admin Job Management</h1>
+        <p class="text-gray-600 mt-1">Manage all jobs in the system</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-gray-500">Total Jobs: {{ totalJobs }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="px-6 py-4 bg-white border-b border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Search -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+        <input
+          type="text"
+          [value]="searchTerm"
+          (input)="onSearchTermChange($any($event.target).value)"
+          placeholder="Search jobs..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <select
+          [(ngModel)]="selectedCategory"
+          (change)="applyFilters()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Categories</option>
+          <option *ngFor="let category of categories()" [value]="category.categoryId">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <select
+          [(ngModel)]="selectedStatus"
+          (change)="applyFilters()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Statuses</option>
+          <option *ngFor="let status of statusOptions()" [value]="status.value">
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Sort -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+        <select
+          [(ngModel)]="selectedSort"
+          (change)="applyFilters()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option *ngFor="let sort of sortOptions()" [value]="sort.value">
+            {{ sort.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Clear Filters -->
+    <div class="mt-4 flex justify-end">
+      <button
+        (click)="clearFilters()"
+        class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition"
+      >
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Jobs List -->
+  <div class="px-6 py-6">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p class="mt-2 text-gray-600">Loading jobs...</p>
+    </div>
+
+    <!-- Jobs Grid -->
+    <div *ngIf="!loading && jobs.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        *ngFor="let job of jobs"
+        class="job-card bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        [class.focused]="focusedJobId === job.jobId"
+        (mouseenter)="setFocus(job.jobId)"
+        (mouseleave)="removeFocus()"
+        (click)="openDetailsModal(job)"
+        tabindex="0"
+      >
+        <!-- Job Header -->
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">{{ getCategoryIcon(job.categoryId) }}</span>
+            <div>
+              <h3 class="font-semibold text-gray-900 text-sm">{{ job.name }}</h3>
+              <p class="text-xs text-gray-500">{{ getJobCategoryName(job.categoryId) }}</p>
+            </div>
+          </div>
+          <span class="status-badge" [class]="getStatusClass(job.status)">
+            {{ job.status }}
+          </span>
+        </div>
+
+        <!-- Job Description -->
+        <p class="text-gray-600 text-sm mb-4 description-clamp">
+          {{ job.description }}
+        </p>
+
+        <!-- Job Details -->
+        <div class="space-y-2 text-xs text-gray-500">
+          <div class="flex justify-between">
+            <span>Pay Amount:</span>
+            <span class="font-semibold text-green-600">${{ job.payAmount }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Created:</span>
+            <span>{{ formatDate(job.createdAt) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Expires:</span>
+            <span>{{ formatDate(job.expiryDate) }}</span>
+          </div>
+          <div *ngIf="job.claimerId" class="flex justify-between">
+            <span>Claimed by:</span>
+            <span>{{ job.claimerId }}</span>
+          </div>
+        </div>
+
+        <!-- Admin Actions -->
+        <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end gap-2">
+          <button
+            (click)="openDetailsModal(job); $event.stopPropagation()"
+            class="action-btn bg-blue-100 text-blue-700 hover:bg-blue-200"
+          >
+            View Details
+          </button>
+          <button
+            (click)="deleteJob(job); $event.stopPropagation()"
+            class="action-btn delete-btn"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Jobs State -->
+    <div *ngIf="!loading && jobs.length === 0" class="text-center py-12">
+      <div class="text-6xl mb-4">📋</div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
+      <p class="text-gray-500">Try adjusting your search criteria or filters.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="mt-8 flex justify-center">
+      <div class="flex items-center gap-2">
+        <button
+          (click)="changePage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="pagination-btn px-3 py-2 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        
+        <span class="px-3 py-2 text-sm text-gray-700">
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+        
+        <button
+          (click)="changePage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="pagination-btn px-3 py-2 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Job Details Modal -->
+<div *ngIf="showDetailsModal && selectedJob" class="fixed inset-0 z-50 overflow-y-auto modal-backdrop" (click)="closeDetailsModal()">
+  <div class="flex items-center justify-center min-h-screen px-4">
+    <div class="modal bg-white rounded-lg shadow-xl w-full max-w-2xl" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-gray-900">Job Details</h2>
+        <button (click)="closeDetailsModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="px-6 py-4 max-h-96 overflow-y-auto">
+        <div class="space-y-4">
+          <!-- Basic Info -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Job ID</label>
+              <p class="text-sm text-gray-900 font-mono">{{ selectedJob.jobId }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Status</label>
+              <span class="inline-block mt-1 status-badge" [class]="getStatusClass(selectedJob.status)">
+                {{ selectedJob.status }}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Job Name</label>
+            <p class="text-sm text-gray-900">{{ selectedJob.name }}</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <p class="text-sm text-gray-900">{{ selectedJob.description }}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Category</label>
+              <p class="text-sm text-gray-900">{{ getJobCategoryName(selectedJob.categoryId) }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Pay Amount</label>
+              <p class="text-sm text-gray-900 font-semibold text-green-600">${{ selectedJob.payAmount }}</p>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Created Date</label>
+              <p class="text-sm text-gray-900">{{ formatDate(selectedJob.createdAt) }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Expiry Date</label>
+              <p class="text-sm text-gray-900">{{ formatDate(selectedJob.expiryDate) }}</p>
+            </div>
+          </div>
+
+          <!-- User Info -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Job Owner ID</label>
+              <p class="text-sm text-gray-900 font-mono">{{ selectedJob.ownerId }}</p>
+            </div>
+            <div *ngIf="selectedJob.claimerId">
+              <label class="block text-sm font-medium text-gray-700">Claimer ID</label>
+              <p class="text-sm text-gray-900 font-mono">{{ selectedJob.claimerId }}</p>
+            </div>
+          </div>
+
+          <!-- Additional Status Info -->
+          <div *ngIf="selectedJob.claimedAt" class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Claimed Date</label>
+              <p class="text-sm text-gray-900">{{ formatDate(selectedJob.claimedAt) }}</p>
+            </div>
+            <div *ngIf="selectedJob.submissionDeadline">
+              <label class="block text-sm font-medium text-gray-700">Submission Deadline</label>
+              <p class="text-sm text-gray-900">{{ formatDate(selectedJob.submissionDeadline) }}</p>
+            </div>
+          </div>
+
+          <!-- Submission Info -->
+          <div *ngIf="selectedJob.submittedAt">
+            <div class="mb-2">
+              <label class="block text-sm font-medium text-gray-700">Submitted Date</label>
+              <p class="text-sm text-gray-900">{{ formatDate(selectedJob.submittedAt) }}</p>
+            </div>
+            <div *ngIf="selectedJob.submissionMessage">
+              <label class="block text-sm font-medium text-gray-700">Submission Message</label>
+              <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded">{{ selectedJob.submissionMessage }}</p>
+            </div>
+          </div>
+
+          <!-- Approval/Rejection Info -->
+          <div *ngIf="selectedJob.approvalMessage">
+            <label class="block text-sm font-medium text-gray-700">Approval Message</label>
+            <p class="text-sm text-gray-900 bg-green-50 p-3 rounded">{{ selectedJob.approvalMessage }}</p>
+          </div>
+
+          <div *ngIf="selectedJob.rejectionMessage">
+            <label class="block text-sm font-medium text-gray-700">Rejection Message</label>
+            <p class="text-sm text-gray-900 bg-red-50 p-3 rounded">{{ selectedJob.rejectionMessage }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 border-t border-gray-200 flex justify-between">
+        <button
+          (click)="deleteJob(selectedJob)"
+          class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+        >
+          Delete Job
+        </button>
+        <button
+          (click)="closeDetailsModal()"
+          class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

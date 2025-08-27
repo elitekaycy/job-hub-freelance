@@ -70,6 +70,9 @@ export interface Job {
   claimedAt: string | null;
   submissionDeadline: string | null;
   submittedAt: string | null;
+  submissionMessage: string | null;
+  approvalMessage: string | null;
+  rejectionMessage: string | null;
 }
 
 

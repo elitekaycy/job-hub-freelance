@@ -6,9 +6,11 @@ import { ResetPasswordComponent } from './auth/reset-password/reset-password.com
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { authGuard } from './config/guard/auth.guard';
 import { guestGuard } from './config/guard/guest.guard';
+import { adminGuard } from './config/guard/admin.guard';
 import { AuthLayoutComponent } from './pages/layout/auth-layout/auth-layout.component';
 import { LandingComponent } from './pages/landing/landing.component';
 import { DashboardLayoutComponent } from './pages/layout/dashboard-layout/dashboard-layout.component';
+import { AdminComponent } from './pages/admin/admin.component';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },
@@ -57,6 +59,10 @@ export const routes: Routes = [
           import('./pages/profile/profile.component').then(
             (m) => m.ProfileComponent
           ),
+      },
+      {
+        path: 'admin',
+        component: AdminComponent,
       },
     ],
   },

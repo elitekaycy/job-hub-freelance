@@ -8,6 +8,7 @@
         <a routerLink="/jobs" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Job Board')">📋 Job Board</a>
         <a routerLink="/manage-jobs" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Manage Jobs')">📝 Manage Jobs</a>
         <a routerLink="/profile" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Profile')">👤 Profile</a>
+        <a *ngIf="showAdmin" routerLink="/admin" routerLinkActive="nav-active" class="nav-link" (click)="onClickRouterLink('Admin')">⚙️ Admin</a>
       </nav>
 
       <div class="mt-auto text-xs text-gray-500 px-2 py-3">© 2025 JobHub</div>
@@ -35,6 +36,7 @@
             <a routerLink="/jobs" class="nav-link block" (click)="onClickRouterLink('Job Board')">📋 Job Board</a>
             <a routerLink="/manage-job" class="nav-link block" (click)="onClickRouterLink('Manage Jobs')">📝 Manage Jobs</a>
             <a routerLink="/profile" class="nav-link block" (click)="onClickRouterLink('Profile')">👤 Profile</a>
+            <a *ngIf="showAdmin" routerLink="/admin" class="nav-link block" (click)="onClickRouterLink('Admin')">⚙️ Admin</a>
           </nav>
         </div>
       </header>
