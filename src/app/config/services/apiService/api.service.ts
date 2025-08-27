@@ -61,8 +61,8 @@ export class ApiService {
     return await firstValueFrom(this.http.post(this.apiUrl + '/job/owner/approve/' + jobId, { message }));
   }
 
-  async rejectJobWithMessage(jobId: string, reason: string): Promise<any> {
-    return await firstValueFrom(this.http.post(this.apiUrl + '/job/owner/reject/' + jobId, { reason }));
+  async rejectJobWithMessage(jobId: string, message: string): Promise<any> {
+    return await firstValueFrom(this.http.post(this.apiUrl + '/job/owner/reject/' + jobId, { message }));
   }
 
   async deleteJob(jobId: string): Promise<any> {
