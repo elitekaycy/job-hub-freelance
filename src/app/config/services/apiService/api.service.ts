@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Categories, CategoriesResponse,ListParams } from '../../interfaces/general.interface';
+import { Categories, CategoriesResponse, ListParams } from '../../interfaces/general.interface';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
@@ -9,15 +9,15 @@ import { environment } from '../../../../environments/environment';
 })
 export class ApiService {
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   private readonly apiUrl = environment.baseURL;
 
   // Fetch data from the /categories endpoint
-  async getCategories():Promise<Categories[]> {
+  async getCategories(): Promise<Categories[]> {
     try {
-      const response = await fetch(this.apiUrl+'/categories');
-      const data= await response.json() as CategoriesResponse; 
+      const response = await fetch(this.apiUrl + '/categories');
+      const data = await response.json() as CategoriesResponse;
       return data.categories;
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -26,15 +26,15 @@ export class ApiService {
   }
 
   postJob(job: any): Observable<any> {
-    return this.http.post(this.apiUrl+'/job/owner/create', job);
+    return this.http.post(this.apiUrl + '/job/owner/create', job);
   }
 
   updateJob(jobId: string, job: any): Observable<any> {
-    return this.http.put(this.apiUrl+`/job/owner/update/`+jobId, job);
+    return this.http.put(this.apiUrl + `/job/owner/update/` + jobId, job);
   }
 
   async submitJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.post(this.apiUrl+`/job/seeker/submit/`+jobId, {}));
+    return await firstValueFrom(this.http.post(this.apiUrl + `/job/seeker/submit/` + jobId, {}));
   }
 
   getJobs(params: ListParams, type: string): Observable<any> {
@@ -48,19 +48,23 @@ export class ApiService {
   }
 
   async claimJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.post(this.apiUrl+'/job/seeker/claim/'+jobId, {}));
+    return await firstValueFrom(this.http.post(this.apiUrl + '/job/seeker/claim/' + jobId, {}));
   }
 
   async rejectJob(jobId: string, reason: string): Promise<any> {
-    return await firstValueFrom(this.http.post(this.apiUrl+`/api/jobs/${jobId}/reject`, {reason})); 
+    return await firstValueFrom(this.http.post(this.apiUrl + `/api/jobs/${jobId}/reject`, { reason }));
   }
 
   async approveJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.post(this.apiUrl+`/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
-  } 
+    return await firstValueFrom(this.http.post(this.apiUrl + `/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
+  }
 
   async deleteJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.delete(this.apiUrl+`/api/jobs/${jobId}`)); 
+    return await firstValueFrom(this.http.delete(this.apiUrl + `/api/jobs/${jobId}`));
+  }
+
+  getOverview(): Observable<any> {
+    return this.http.get(this.apiUrl + '/job/overview');
   }
 
 }
