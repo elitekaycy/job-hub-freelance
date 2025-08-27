@@ -30,7 +30,7 @@ export class ApiService {
   }
 
   updateJob(jobId: string, job: any): Observable<any> {
-    return this.http.put(this.apiUrl + `/job/owner/update/` + jobId, job);
+    return this.http.put(this.apiUrl + `/job/owner/edit/` + jobId, job);
   }
 
   async submitJob(jobId: string): Promise<any> {
@@ -51,20 +51,22 @@ export class ApiService {
     return await firstValueFrom(this.http.post(this.apiUrl + '/job/seeker/claim/' + jobId, {}));
   }
 
-  async rejectJob(jobId: string, reason: string): Promise<any> {
-    return await firstValueFrom(this.http.post(this.apiUrl + `/api/jobs/${jobId}/reject`, { reason }));
-  }
-
-  async approveJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.post(this.apiUrl + `/api/jobs/${jobId}/approve`, {})); // Empty body is required in this case
-  }
-
-  async deleteJob(jobId: string): Promise<any> {
-    return await firstValueFrom(this.http.delete(this.apiUrl + `/api/jobs/${jobId}`));
-  }
+  
 
   getOverview(): Observable<any> {
     return this.http.get(this.apiUrl + '/job/overview');
+  }
+
+  async approveJobWithMessage(jobId: string, message: string): Promise<any> {
+    return await firstValueFrom(this.http.post(this.apiUrl + '/job/owner/approve/' + jobId, { message }));
+  }
+
+  async rejectJobWithMessage(jobId: string, reason: string): Promise<any> {
+    return await firstValueFrom(this.http.post(this.apiUrl + '/job/owner/reject/' + jobId, { reason }));
+  }
+
+  async deleteJob(jobId: string): Promise<any> {
+    return await firstValueFrom(this.http.delete(this.apiUrl + '/job/owner/delete/' + jobId));
   }
 
 }

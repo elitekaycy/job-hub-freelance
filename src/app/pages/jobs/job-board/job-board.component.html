@@ -166,7 +166,7 @@
             <!-- Approve button -->
             <button 
               *ngIf="canApproveOrRejectJob(job)"
-              (click)="$event.stopPropagation(); approveJob(job)"
+              (click)="$event.stopPropagation(); openApproveModal(job)"
               class="action-btn bg-green-600 text-white hover:bg-green-700">
               Approve
             </button>
@@ -293,6 +293,33 @@
     </div>
   </div>
 
+  <!-- Approve Job Modal -->
+  <div *ngIf="showApproveModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal">
+      <h3 class="text-xl font-bold text-blue-700 mb-4">Approve Submission</h3>
+      <p class="text-gray-600 mb-2">Please provide a message for approving "{{ selectedJob?.name }}":</p>
+      
+      <textarea 
+        [(ngModel)]="approvalMessage"
+        rows="3"
+        placeholder="Message for approval..."
+        class="form-input w-full mt-3"></textarea>
+      
+      <div class="flex justify-end space-x-3 mt-6">
+        <button 
+          (click)="closeApproveModal()"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+          Cancel
+        </button>
+        <button 
+          (click)="approveJob()"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+          {{loading ? "Approving..." : "Approve Submission"}}
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Reject Job Modal -->
   <div *ngIf="showRejectModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
     <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal">
@@ -414,7 +441,7 @@
         <ng-container *ngIf="mode() === 'jobOwner'">
           <button 
             *ngIf="canApproveOrRejectJob(selectedJob!)"
-            (click)="showDetailsModal = false; approveJob(selectedJob!)"
+            (click)="showDetailsModal = false; openApproveModal(selectedJob!)"
             class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
             Approve
           </button>

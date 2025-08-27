@@ -99,9 +99,11 @@ export class JobBoardComponent implements OnInit, OnDestroy {
   showDetailsModal = false;
   showPostJobModal = false;
   showRejectModal = false;
+  showApproveModal = false;
   selectedJob: Job | null = null;
   submissionDetails = '';
   rejectReason = '';
+  approvalMessage = '';
   jobSeekerId= '';
   jobOwnerId= '';
   focusedJobId: string | null = null;
@@ -355,6 +357,18 @@ export class JobBoardComponent implements OnInit, OnDestroy {
     this.selectedJob = null;
   }
 
+  openApproveModal(job: Job) {
+    this.selectedJob = job;
+    this.approvalMessage = '';
+    this.showApproveModal = true;
+  }
+
+  closeApproveModal() {
+    this.showApproveModal = false;
+    this.selectedJob = null;
+    this.approvalMessage = '';
+  }
+
   openRejectModal(job: Job) {
     this.selectedJob = job;
     this.rejectReason = '';
@@ -435,14 +449,23 @@ export class JobBoardComponent implements OnInit, OnDestroy {
     }
   }
 
-  async approveJob(job: Job) {
+  async approveJob() {
+    if (!this.selectedJob || !this.approvalMessage.trim()) {
+      this.toastService.error('Please provide an approval message.');
+      return;
+    }
+
     try {
       this.loading = true;
-      const response = await this.apiService.approveJob(job.jobId);
+      const response = await this.apiService.approveJobWithMessage(
+        this.selectedJob.jobId,
+        this.approvalMessage
+      );
       
       if (response.message) {
         this.toastService.success('Job approved successfully!');
         this.loading = false;
+        this.closeApproveModal();
         this.loadJobs();
       }
     } catch (error) {
@@ -460,7 +483,7 @@ export class JobBoardComponent implements OnInit, OnDestroy {
 
     try {
       this.loading = true;
-      const response = await this.apiService.rejectJob(
+      const response = await this.apiService.rejectJobWithMessage(
         this.selectedJob.jobId, 
         this.rejectReason
       );
