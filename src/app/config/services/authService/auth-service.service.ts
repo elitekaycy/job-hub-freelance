@@ -241,29 +241,31 @@ export class AuthService {
     );
   }
 
-  isAdmin(): Observable<boolean> {
+  getUserGroups(): Observable<string[]> {
     return from(fetchAuthSession()).pipe(
       map(session => {
-        console.log('Full session object:', session);
-        
         if (!session.tokens?.accessToken) {
-          console.log('No access token found in session');
-          return false;
+          return [];
         }
-        
-        console.log('Access token payload:', session.tokens.accessToken.payload);
         const groups = session.tokens.accessToken.payload['cognito:groups'] as string[] | undefined;
-        console.log('User groups from cognito:groups:', groups);
-        
-        const isAdmin = groups ? groups.includes('ADMIN') : false;
-        console.log('Is user admin?', isAdmin);
-        
-        return isAdmin;
+        return groups || [];
       }),
       catchError(error => {
-        console.error('Error checking admin status:', error);
-        return of(false);
+        console.error('Error getting user groups:', error);
+        return of([]);
       })
+    );
+  }
+
+  isAdmin(): Observable<boolean> {
+    return this.getUserGroups().pipe(
+      map(groups => groups.includes('ADMIN'))
+    );
+  }
+
+  isUser(): Observable<boolean> {
+    return this.getUserGroups().pipe(
+      map(groups => groups.includes('USER'))
     );
   }
 }

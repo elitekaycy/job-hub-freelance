@@ -25,7 +25,9 @@ export class DashboardLayoutComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   currentRoute = "Dashboard";
-  showAdmin = true;
+  
+  isAdmin$ = this.auth.isAdmin();
+  isUser$ = this.auth.isUser();
 
 
   onClickRouterLink(route: string) {
