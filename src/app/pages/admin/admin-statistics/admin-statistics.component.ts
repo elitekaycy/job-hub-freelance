@@ -76,14 +76,6 @@ interface AdminStatistics {
         <p class="ml-3 text-gray-600">Loading statistics...</p>
       </div>
 
-      <!-- Debug Section (temporary) -->
-      <div *ngIf="!loading && statistics" class="px-6 py-2 bg-yellow-50 border-l-4 border-yellow-400">
-        <details class="text-xs">
-          <summary class="cursor-pointer text-yellow-800 font-medium">🐛 Debug Info (click to expand)</summary>
-          <pre class="mt-2 text-yellow-700 overflow-auto">{{ statistics | json }}</pre>
-        </details>
-      </div>
-
       <!-- Statistics Content -->
       <div *ngIf="!loading && statistics" class="px-6 py-6">
         <!-- Overview Cards -->
