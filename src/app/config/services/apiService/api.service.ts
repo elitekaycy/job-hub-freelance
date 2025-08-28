@@ -86,4 +86,8 @@ export class ApiService {
     return await firstValueFrom(this.http.delete(this.apiUrl + `/admin/job/${jobId}/delete`));
   }
 
+  getAdminStatistics(): Observable<any> {
+    return this.http.get(this.apiUrl + '/admin/job/statistics');
+  }
+
 }

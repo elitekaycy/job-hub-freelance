@@ -11,6 +11,7 @@ import { AuthLayoutComponent } from './pages/layout/auth-layout/auth-layout.comp
 import { LandingComponent } from './pages/landing/landing.component';
 import { DashboardLayoutComponent } from './pages/layout/dashboard-layout/dashboard-layout.component';
 import { AdminComponent } from './pages/admin/admin.component';
+import { AdminStatisticsComponent } from './pages/admin/admin-statistics/admin-statistics.component';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },
@@ -63,6 +64,10 @@ export const routes: Routes = [
       {
         path: 'admin',
         component: AdminComponent,
+      },
+      {
+        path: 'admin/statistics',
+        component: AdminStatisticsComponent,
       },
     ],
   },
