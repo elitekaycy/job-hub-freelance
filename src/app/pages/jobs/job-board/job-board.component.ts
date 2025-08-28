@@ -317,7 +317,7 @@ export class JobBoardComponent implements OnInit, OnDestroy {
   canEditOrDeleteJob(job: Job): boolean {
     return this.mode() === 'jobOwner' && 
            this.isJobOwnedByUser(job) && 
-           (job.status === 'open' || job.status === 'claimed');
+           job.status === 'open';
   }
 
   canApproveOrRejectJob(job: Job): boolean {

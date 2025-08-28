@@ -54,7 +54,7 @@ export class JobPostComponent {
         description: this.job()?.description ?? '',
         categoryId: this.job()?.categoryId?? '',
         payAmount: this.job()?.payAmount?? 0,
-        timeToCompleteDate: this.secondsToDate(this.job()?.timeToCompleteSeconds?? 0),
+        timeToCompleteDate: this.durationSecondsToDate(this.job()?.timeToCompleteSeconds?? 0),
         expiryDate: new Date(this.job()?.expiryDate?? 0)
       });
     }
@@ -81,15 +81,18 @@ export class JobPostComponent {
     if (this.jobForm.invalid) return;
     this.loading = true;
 
-    const payload = {
-      ...this.jobForm.value,
-      timeToCompleteSeconds: this.dateToSeconds(this.jobForm.value.timeToCompleteDate || new Date()),
-      expirySeconds: this.dateToSeconds(this.jobForm.value.expiryDate || new Date()),
+    const payload: any = {
+      name: this.jobForm.value.name,
+      description: this.jobForm.value.description,
+      payAmount: this.jobForm.value.payAmount,
+      timeToCompleteSeconds: this.dateToDurationSeconds(this.jobForm.value.timeToCompleteDate || new Date()),
+      expirySeconds: this.dateToDurationSeconds(this.jobForm.value.expiryDate || new Date()),
     };
 
-    // Remove timeToCompleteDate and expiryDate from payload
-    delete payload.timeToCompleteDate;
-    delete payload.expiryDate;
+    // Include categoryId only for new jobs (create), not for edits
+    if (!this.job()) {
+      payload.categoryId = this.jobForm.value.categoryId;
+    }
 
     // Determine if we're creating or updating
     const apiCall = this.job() 
@@ -115,17 +118,20 @@ export class JobPostComponent {
     this.canceled.emit();
   }
 
-  // Convert Date to seconds since epoch
-  private dateToSeconds(date: Date | null): number {
+  // Convert Date to duration seconds from now
+  private dateToDurationSeconds(date: Date | null): number {
     if (!date) return 0;
-    const duration = typeof date === 'string' ? new Date(date) : date;
-    return date ? Math.floor(duration.getTime() / 1000) : 0;
+    const targetDate = typeof date === 'string' ? new Date(date) : date;
+    const now = new Date();
+    const diffMs = targetDate.getTime() - now.getTime();
+    return Math.max(0, Math.floor(diffMs / 1000)); // Ensure non-negative
   }
 
-  // Convert seconds to Date
-  private secondsToDate(seconds: number): Date {
+  // Convert duration seconds to future Date
+  private durationSecondsToDate(seconds: number): Date {
     if (!seconds) return new Date();
     const duration = typeof seconds === 'string' ? Number(seconds) : seconds;
-    return new Date(duration * 1000);
+    const now = new Date();
+    return new Date(now.getTime() + (duration * 1000));
   }
 }
