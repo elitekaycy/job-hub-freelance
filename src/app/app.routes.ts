@@ -8,6 +8,7 @@ import { authGuard } from './config/guard/auth.guard';
 import { guestGuard } from './config/guard/guest.guard';
 import { adminGuard } from './config/guard/admin.guard';
 import { AuthLayoutComponent } from './pages/layout/auth-layout/auth-layout.component';
+
 import { LandingComponent } from './pages/landing/landing.component';
 import { DashboardLayoutComponent } from './pages/layout/dashboard-layout/dashboard-layout.component';
 import { AdminComponent } from './pages/admin/admin.component';
@@ -42,10 +43,11 @@ export const routes: Routes = [
     // canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: DashboardComponent },
-      { path: 'jobs', loadComponent: () => 
-        import('./pages/jobs/job-seekers-board/job-seekers-board.component').then(
-          m => m.JobSeekersBoardComponent
-        ) 
+      {
+        path: 'jobs', loadComponent: () =>
+          import('./pages/jobs/job-seekers-board/job-seekers-board.component').then(
+            m => m.JobSeekersBoardComponent
+          )
       },
       {
         path: 'manage-jobs',
@@ -71,9 +73,5 @@ export const routes: Routes = [
       },
     ],
   },
-  {
-    path: '**',
-    canActivate: [authGuard],
-    children: [],
-  },
+  { path: '**', redirectTo: '/dashboard' }
 ];

@@ -1,5 +1,6 @@
 export const environment = {
-    userPoolId: 'eu-central-1_vsDdYLv0W',
-    userPoolClientId: '4dptii3aj0p9u2sc0jge4fvfhg',  
-    baseURL:"https://hc4mdt2ga4.execute-api.eu-central-1.amazonaws.com/dev"
+  userPoolId: 'eu-central-1_oqxCj6uxr',
+  userPoolClientId: '3idmqf8dh3tbvjp1in6j4nhd67',
+  baseURL: "https://7cocf4s090.execute-api.eu-central-1.amazonaws.com/staging-test",
+  UsersTableName: "dev-UsersTable"
 };
