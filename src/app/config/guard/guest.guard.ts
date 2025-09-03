@@ -1,10 +1,10 @@
 // src/app/config/guard/guest.guard.ts
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { AuthService } from '../services/authService/auth-service.service';
 
-export const guestGuard = () => {
+export const guestGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
