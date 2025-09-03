@@ -90,7 +90,7 @@ interface AdminStatistics {
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Total Jobs</p>
-                <p class="text-2xl font-bold text-gray-900">{{ statistics?.totalJobs || 0 }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ statistics!.totalJobs || 0 }}</p>
               </div>
             </div>
           </div>
@@ -105,7 +105,7 @@ interface AdminStatistics {
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Posted Jobs</p>
-                <p class="text-2xl font-bold text-green-600">{{ statistics?.totalPostedJobs || 0 }}</p>
+                <p class="text-2xl font-bold text-green-600">{{ statistics!.totalPostedJobs || 0 }}</p>
               </div>
             </div>
           </div>
@@ -120,7 +120,7 @@ interface AdminStatistics {
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Claimed Jobs</p>
-                <p class="text-2xl font-bold text-yellow-600">{{ statistics?.totalClaimedJobs || 0 }}</p>
+                <p class="text-2xl font-bold text-yellow-600">{{ statistics!.totalClaimedJobs || 0 }}</p>
               </div>
             </div>
           </div>
@@ -135,7 +135,7 @@ interface AdminStatistics {
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Submitted Jobs</p>
-                <p class="text-2xl font-bold text-blue-600">{{ statistics?.totalSubmittedJobs || 0 }}</p>
+                <p class="text-2xl font-bold text-blue-600">{{ statistics!.totalSubmittedJobs || 0 }}</p>
               </div>
             </div>
           </div>
@@ -150,7 +150,7 @@ interface AdminStatistics {
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Approved Jobs</p>
-                <p class="text-2xl font-bold text-purple-600">{{ statistics?.totalApprovedJobs || 0 }}</p>
+                <p class="text-2xl font-bold text-purple-600">{{ statistics!.totalApprovedJobs || 0 }}</p>
               </div>
             </div>
           </div>
@@ -167,56 +167,56 @@ interface AdminStatistics {
                   <div class="w-3 h-3 bg-blue-400 rounded-full mr-3"></div>
                   <span class="text-sm text-gray-700">Total Jobs</span>
                 </div>
-                <span class="text-sm font-semibold text-gray-900">{{ statistics?.totalJobs || 0 }}</span>
+                <span class="text-sm font-semibold text-gray-900">{{ statistics!.totalJobs || 0 }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <div class="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
                   <span class="text-sm text-gray-700">Posted Jobs</span>
                 </div>
-                <span class="text-sm font-semibold text-gray-900">{{ statistics?.totalPostedJobs || 0 }}</span>
+                <span class="text-sm font-semibold text-gray-900">{{ statistics!.totalPostedJobs || 0 }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <div class="w-3 h-3 bg-yellow-400 rounded-full mr-3"></div>
                   <span class="text-sm text-gray-700">Claimed Jobs</span>
                 </div>
-                <span class="text-sm font-semibold text-gray-900">{{ statistics?.totalClaimedJobs || 0 }}</span>
+                <span class="text-sm font-semibold text-gray-900">{{ statistics!.totalClaimedJobs || 0 }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <div class="w-3 h-3 bg-blue-400 rounded-full mr-3"></div>
                   <span class="text-sm text-gray-700">Submitted Jobs</span>
                 </div>
-                <span class="text-sm font-semibold text-gray-900">{{ statistics?.totalSubmittedJobs || 0 }}</span>
+                <span class="text-sm font-semibold text-gray-900">{{ statistics!.totalSubmittedJobs || 0 }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <div class="w-3 h-3 bg-purple-400 rounded-full mr-3"></div>
                   <span class="text-sm text-gray-700">Approved Jobs</span>
                 </div>
-                <span class="text-sm font-semibold text-gray-900">{{ statistics?.totalApprovedJobs || 0 }}</span>
+                <span class="text-sm font-semibold text-gray-900">{{ statistics!.totalApprovedJobs || 0 }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <div class="w-3 h-3 bg-red-400 rounded-full mr-3"></div>
                   <span class="text-sm text-gray-700">Rejected Jobs</span>
                 </div>
-                <span class="text-sm font-semibold text-gray-900">{{ statistics?.totalRejectedJobs || 0 }}</span>
+                <span class="text-sm font-semibold text-gray-900">{{ statistics!.totalRejectedJobs || 0 }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <div class="w-3 h-3 bg-gray-400 rounded-full mr-3"></div>
                   <span class="text-sm text-gray-700">Expired Jobs</span>
                 </div>
-                <span class="text-sm font-semibold text-gray-900">{{ statistics?.totalExpiredJobs || 0 }}</span>
+                <span class="text-sm font-semibold text-gray-900">{{ statistics!.totalExpiredJobs || 0 }}</span>
               </div>
             </div>
           </div>
 
           <!-- Claims Chart -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Daily Claims Trend ({{ statistics.summary?.statsPeriod }})</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Daily Claims Trend ({{ statistics!.summary.statsPeriod }})</h3>
             <div class="relative" style="height: 200px;">
               <canvas #claimsChart></canvas>
             </div>
@@ -225,7 +225,7 @@ interface AdminStatistics {
 
         <!-- Daily Statistics -->
         <div *ngIf="statistics?.stats && statistics.stats.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Daily Claims Statistics ({{ statistics.summary?.statsPeriod }})</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Daily Claims Statistics ({{ statistics!.summary.statsPeriod }})</h3>
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
@@ -254,9 +254,9 @@ interface AdminStatistics {
         <!-- Recent Activity -->
         <div *ngIf="statistics?.recent && statistics.recent.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">
-            Recent Activity ({{ statistics.summary?.recentPeriod }})
+            Recent Activity ({{ statistics!.summary.recentPeriod }})
             <span class="text-sm font-normal text-gray-500 ml-2">
-              • {{ statistics.summary?.totalActivitiesFound }} activities found
+              • {{ statistics!.summary.totalActivitiesFound }} activities found
             </span>
           </h3>
           <div class="space-y-4">
