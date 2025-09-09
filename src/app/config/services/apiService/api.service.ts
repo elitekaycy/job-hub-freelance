@@ -39,10 +39,21 @@ export class ApiService {
 
   getJobs(params: ListParams, type: string): Observable<any> {
     let endpoint = type === 'jobOwner' ? '/job/owner/list' : '/job/seeker/list';
-    let urlParams = `${endpoint}?type=all&offset=${params.offset}&limit=${params.limit}&sortBy=${params.sort}`;
-    if (params.search) urlParams += `&search=${params.search}`;
-    if (params.category) urlParams += `&category=${params.category}`;
+    let urlParams = `${endpoint}?offset=${params.offset}&limit=${params.limit}`;
+    
+    // Add query parameter for search
+    if (params.search) urlParams += `&query=${params.search}`;
+    
+    // Add categoryId parameter
+    if (params.category) urlParams += `&categoryId=${params.category}`;
+    
+    // Add status parameter
     if (params.status) urlParams += `&status=${params.status}`;
+    
+    // Add sorting parameters
+    if (params.sort) {
+      urlParams += `&sortBy=${params.sort}&sortOrder=desc`;
+    }
 
     return this.http.get(this.apiUrl + urlParams);
   }

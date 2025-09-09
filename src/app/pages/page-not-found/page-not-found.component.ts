@@ -66,6 +66,6 @@ export class PageNotFoundComponent {
   isAuthenticated$: Observable<boolean>;
 
   constructor(private authService: AuthService) {
-    this.isAuthenticated$ = this.authService.isAuthenticated$;
+    this.isAuthenticated$ = this.authService.isAuthenticatedBoolean$;
   }
 }

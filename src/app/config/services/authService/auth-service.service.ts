@@ -24,20 +24,25 @@ import {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  private readonly isAuthenticatedSubject = new BehaviorSubject<boolean | null>(null); // null = loading
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  public isAuthenticatedBoolean$ = this.isAuthenticated$.pipe(map(isAuth => isAuth === true));
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
     this.init();
   }
 
   public async init(): Promise<void> {
-    await this.checkAuthState();
+    if (!this.initPromise) {
+      this.initPromise = this.checkAuthState();
+    }
+    return this.initPromise;
   }
 
   private async checkAuthState(): Promise<void> {
     try {
-     await getCurrentUser();
+      await getCurrentUser();
       this.isAuthenticatedSubject.next(true);
     } catch (error) {
       this.isAuthenticatedSubject.next(false);
