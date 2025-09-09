@@ -39,7 +39,7 @@ export class ApiService {
 
   getJobs(params: ListParams, type: string): Observable<any> {
     let endpoint = type === 'jobOwner' ? '/job/owner/list' : '/job/seeker/list';
-    let urlParams = `${endpoint}?offset=${params.offset}&limit=${params.limit}`;
+    let urlParams = `${endpoint}?type=all&offset=${params.offset}&limit=${params.limit}`;
     
     // Add query parameter for search
     if (params.search) urlParams += `&query=${params.search}`;
