@@ -24,7 +24,7 @@
         [options]="jobCategories" 
         [selectedValue]="jobForm.value.categoryId??null"
         (selected)="onCategorySelect($event)" 
-        [disabled]="jobForm.disabled">
+        [disabled]="!!jobForm.get('categoryId')?.disabled">
       </app-single-select>
       @if (jobForm.get('categoryId')?.hasError('required') && jobForm.get('categoryId')?.touched) {
         <div class="text-red-500 text-xs">Category is required</div>
@@ -49,6 +49,8 @@
         formControlName="timeToCompleteDate" 
         required 
         class="form-input"
+        [class.bg-gray-100]="!!jobForm.get('timeToCompleteDate')?.disabled"
+        [class.cursor-not-allowed]="!!jobForm.get('timeToCompleteDate')?.disabled"
         [min]="today()">
       @if (jobForm.get('timeToCompleteDate')?.hasError('required') && jobForm.get('timeToCompleteDate')?.touched) {
         <div class="text-red-500 text-xs">Time to complete is required</div>
@@ -62,6 +64,8 @@
         formControlName="expiryDate" 
         required 
         class="form-input"
+        [class.bg-gray-100]="!!jobForm.get('expiryDate')?.disabled"
+        [class.cursor-not-allowed]="!!jobForm.get('expiryDate')?.disabled"
         [min]="today()">
       @if (jobForm.get('expiryDate')?.hasError('required') && jobForm.get('expiryDate')?.touched) {
         <div class="text-red-500 text-xs">Expiry date is required</div>

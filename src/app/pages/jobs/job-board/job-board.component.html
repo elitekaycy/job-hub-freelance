@@ -190,7 +190,7 @@
             <!-- Delete button -->
             <button 
               *ngIf="canEditOrDeleteJob(job)"
-              (click)="$event.stopPropagation(); deleteJob(job)"
+              (click)="$event.stopPropagation(); openDeleteModal(job)"
               class="action-btn bg-gray-600 text-white hover:bg-gray-700">
               Delete
             </button>
@@ -347,6 +347,30 @@
     </div>
   </div>
 
+  <!-- Delete Job Modal -->
+  <div *ngIf="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal">
+      <h3 class="text-xl font-bold text-red-700 mb-4">Delete Job</h3>
+      <p class="text-gray-600 mb-6">
+        Are you sure you want to delete "<strong>{{ selectedJob?.name }}</strong>"? 
+        <br><span class="text-red-600 text-sm">This action cannot be undone.</span>
+      </p>
+      
+      <div class="flex justify-end space-x-3">
+        <button 
+          (click)="closeDeleteModal()"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+          Cancel
+        </button>
+        <button 
+          (click)="deleteJob()"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+          {{ loading ? 'Deleting...' : 'Delete Job' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Post/Edit Job Modal -->
   <div *ngIf="showPostJobModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
     <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl modal">
@@ -459,7 +483,7 @@
           </button>
           <button 
             *ngIf="canEditOrDeleteJob(selectedJob!)"
-            (click)="showDetailsModal = false; deleteJob(selectedJob!)"
+            (click)="showDetailsModal = false; openDeleteModal(selectedJob!)"
             class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
             Delete
           </button>

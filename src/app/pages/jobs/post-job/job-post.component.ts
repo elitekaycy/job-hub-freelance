@@ -47,7 +47,7 @@ export class JobPostComponent {
   ngOnInit() {
     this.loadJobCategories();
     
-    // If editing an existing job, populate the form
+    // If editing an existing job, populate the form and disable specific fields
     if (this.job()) {
       this.jobForm.patchValue({
         name: this.job()?.name ?? '',
@@ -57,6 +57,11 @@ export class JobPostComponent {
         timeToCompleteDate: this.durationSecondsToDate(this.job()?.timeToCompleteSeconds?? 0),
         expiryDate: new Date(this.job()?.expiryDate?? 0)
       });
+      
+      // Disable fields when editing
+      this.jobForm.get('categoryId')?.disable();
+      this.jobForm.get('timeToCompleteDate')?.disable();
+      this.jobForm.get('expiryDate')?.disable();
     }
   }
 
@@ -74,7 +79,10 @@ export class JobPostComponent {
   }
 
   onCategorySelect(categoryId: string) {
-    this.jobForm.patchValue({ categoryId });
+    // Only update if the field is not disabled (when editing)
+    if (!this.jobForm.get('categoryId')?.disabled) {
+      this.jobForm.patchValue({ categoryId });
+    }
   }
 
   submitJob() {

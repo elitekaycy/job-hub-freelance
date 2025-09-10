@@ -100,6 +100,7 @@ export class JobBoardComponent implements OnInit, OnDestroy {
   showPostJobModal = false;
   showRejectModal = false;
   showApproveModal = false;
+  showDeleteModal = false;
   selectedJob: Job | null = null;
   submissionDetails = '';
   rejectReason = '';
@@ -381,6 +382,16 @@ export class JobBoardComponent implements OnInit, OnDestroy {
     this.rejectReason = '';
   }
 
+  openDeleteModal(job: Job) {
+    this.selectedJob = job;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.selectedJob = null;
+  }
+
   openDetailsModal(job: Job) {
     this.selectedJob = job;
     this.showDetailsModal = true;
@@ -501,16 +512,17 @@ export class JobBoardComponent implements OnInit, OnDestroy {
     }
   }
 
-  async deleteJob(job: Job) {
-    if (!confirm('Are you sure you want to delete this job?')) return;
+  async deleteJob() {
+    if (!this.selectedJob) return;
     
     try {
       this.loading = true;
-      const response = await this.apiService.deleteJob(job.jobId);
+      const response = await this.apiService.deleteJob(this.selectedJob.jobId);
       
       if (response.message) {
         this.toastService.success('Job deleted successfully!');
         this.loading = false;
+        this.closeDeleteModal();
         this.loadJobs();
       }
     } catch (error) {
